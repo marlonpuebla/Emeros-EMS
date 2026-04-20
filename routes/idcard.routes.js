@@ -60,7 +60,18 @@ module.exports = function (app) {
     box-shadow:0 4px 12px rgba(0,0,0,.18);position:relative;overflow:hidden;
     -webkit-print-color-adjust:exact;print-color-adjust:exact;
   }
-  /* Frosted-teal gradient at the bottom third of the card — decorative. */
+  /* Frosted slate gradient on the top 2/3 — decorative. */
+  .card::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:66%;
+    background:linear-gradient(to bottom,
+      rgba(100,116,139,.22) 0%,
+      rgba(148,163,184,.14) 45%,
+      rgba(203,213,225,.06) 85%,
+      rgba(255,255,255,0) 100%);
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    border-radius:10px 10px 0 0;pointer-events:none;z-index:0;
+  }
+  /* Frosted-teal gradient at the bottom third — decorative. */
   .card::after{
     content:"";position:absolute;left:0;right:0;bottom:0;height:36%;
     background:linear-gradient(to top,
@@ -71,7 +82,16 @@ module.exports = function (app) {
     backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
     border-radius:0 0 10px 10px;pointer-events:none;z-index:0;
   }
-  .card > *{position:relative;z-index:1}
+  /* Washed-white logo watermark sits above gradients, below content. */
+  .watermark{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    z-index:1;pointer-events:none;
+  }
+  .watermark img{
+    width:150%;max-width:none;opacity:.08;
+    filter:brightness(0) invert(1);
+  }
+  .card > *:not(.watermark){position:relative;z-index:2}
   .header{text-align:center;font-size:8.5px;font-weight:700;color:#0a5a3a;border-bottom:2px solid #0a5a3a;padding:2px 0 5px;width:100%;letter-spacing:.3px;line-height:1.15}
   .logo{max-height:40px;max-width:85%;object-fit:contain;display:block;margin:6px auto 4px}
   .photo{
@@ -106,6 +126,7 @@ module.exports = function (app) {
 </head>
 <body>
   <div class="card">
+    ${logo ? `<div class="watermark"><img src="${logo}" alt=""></div>` : ''}
     <div class="header">${escapeHtml(orgName)}</div>
     ${logo ? `<img class="logo" src="${logo}" alt="">` : ''}
     ${photo
