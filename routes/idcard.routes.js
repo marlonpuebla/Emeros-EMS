@@ -38,7 +38,7 @@ module.exports = function (app) {
     const orgName = orgRow?.value || 'Emeros EMS';
     const photo = fileToDataUrl(emp.photo_url);
     const logo  = fileToDataUrl(logoRow?.value);
-    const position = emp.position_ahca || emp.position_om || '';
+    const position = emp.position_om || emp.position_ahca || '';
     const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim();
     const badge = emp.badge_number || 'EMP-????';
 
