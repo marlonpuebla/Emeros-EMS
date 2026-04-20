@@ -6,10 +6,20 @@ const bcrypt   = require('bcryptjs');
 const { DATA_DIR, DB_PATH, UPLOAD_DIR } = require('./config');
 
 let db = null;
+let SQL = null;
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 function saveDb() {
   fs.writeFileSync(DB_PATH, Buffer.from(db.export()));
+}
+
+// Reload the DB from disk into the in-memory instance. Required after any
+// external writer (e.g. a Python script called via execFile) modifies the
+// file directly; otherwise the next saveDb() overwrites their changes.
+function reloadDb() {
+  if (!SQL) throw new Error('DB not initialized — cannot reload');
+  if (db) { try { db.close(); } catch (_) { /* ignore */ } }
+  db = new SQL.Database(fs.readFileSync(DB_PATH));
 }
 
 function dbAll(sql, params = []) {
@@ -41,7 +51,7 @@ async function initDb() {
   if (!fs.existsSync(DATA_DIR))  fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-  const SQL = await initSqlJs();
+  SQL = await initSqlJs();
 
   // Startup backup
   if (fs.existsSync(DB_PATH)) {
@@ -741,4 +751,4 @@ function seedTemplates() {
   console.log('[db] Seeded 6 hiring package templates');
 }
 
-module.exports = { initDb, dbAll, dbGet, dbRun, lastInsertId, saveDb };
+module.exports = { initDb, dbAll, dbGet, dbRun, lastInsertId, saveDb, reloadDb };

@@ -146,6 +146,9 @@ module.exports = function (app) {
         if (err) return res.status(500).json({ error: (stderr || err.message).trim() });
         try {
           const result = JSON.parse(stdout.trim());
+          // Python wrote directly to the SQLite file; reload the in-memory DB
+          // before the next dbRun (inside audit) overwrites it.
+          app.locals.reloadDb();
           audit(req, 'IMPORT_EXCEL', null, null, result);
           res.json(result);
         } catch { res.status(500).json({ error: 'Import error: ' + stdout.trim() }); }

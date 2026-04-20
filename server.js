@@ -3,7 +3,7 @@ const express = require('express');
 const path    = require('path');
 const cors    = require('cors');
 const config  = require('./config');
-const { initDb, dbAll, dbGet, dbRun, lastInsertId, saveDb } = require('./db');
+const { initDb, dbAll, dbGet, dbRun, lastInsertId, saveDb, reloadDb } = require('./db');
 
 const app = express();
 app.use(cors());
@@ -17,6 +17,7 @@ initDb().then(() => {
   app.locals.dbRun       = dbRun;
   app.locals.lastInsertId = lastInsertId;
   app.locals.saveDb      = saveDb;
+  app.locals.reloadDb    = reloadDb;
 
   // Register routes
   require('./routes/auth.routes')(app);
