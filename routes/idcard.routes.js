@@ -60,7 +60,7 @@ module.exports = function (app) {
     box-shadow:0 4px 12px rgba(0,0,0,.18);position:relative;overflow:hidden;
   }
   .header{text-align:center;font-size:8.5px;font-weight:700;color:#0a5a3a;border-bottom:2px solid #0a5a3a;padding:2px 0 5px;width:100%;letter-spacing:.3px;line-height:1.15}
-  .logo{max-height:20px;max-width:75%;object-fit:contain;display:block;margin:5px auto 2px}
+  .logo{max-height:40px;max-width:85%;object-fit:contain;display:block;margin:6px auto 4px}
   .photo{
     width:1.3in;height:1.3in;border:2px solid #0a5a3a;border-radius:6px;
     object-fit:cover;margin:6px 0;background:#f3f4f6;
