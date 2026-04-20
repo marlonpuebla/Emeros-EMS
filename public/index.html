@@ -756,6 +756,21 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
 
         <!-- Tab: Facility -->
         <div class="settings-tab-panel active" id="settings-panel-facility">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--sh);margin-bottom:20px">
+            <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--green);margin-bottom:16px">Organization Logo</div>
+            <div style="display:flex;gap:20px;align-items:center">
+              <div id="org-logo-box" style="width:120px;height:120px;border:2px dashed var(--border);border-radius:8px;background:#f3f4f6 center/contain no-repeat;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12px;flex-shrink:0">No logo</div>
+              <div style="flex:1">
+                <input type="file" id="org-logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="handleOrgLogoSelect(event)">
+                <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('org-logo-input').click()">Upload Logo</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="org-logo-remove-btn" style="display:none;margin-left:6px" onclick="deleteOrgLogo()">Remove</button>
+                <div style="font-size:12px;color:var(--t2);margin-top:8px;line-height:1.5">
+                  Appears on employee ID cards and (eventually) the login page.<br>
+                  PNG, JPEG, WebP, or SVG. Max 2&nbsp;MB. Transparent PNG/SVG recommended.
+                </div>
+              </div>
+            </div>
+          </div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--sh)">
             <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--green);margin-bottom:16px">Organization Settings</div>
             <div class="grid g2" style="gap:12px;margin-bottom:16px">
@@ -1143,6 +1158,21 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
     <form id="emp-form" onsubmit="saveEmployee(event)">
       <input type="hidden" id="f-id">
       <div class="emp-tab-panel active" id="emp-panel-main">
+      <!-- Photo & Badge -->
+      <div class="fs" id="photo-badge-section" style="display:none">
+        <div class="fs-title">Photo &amp; Badge</div>
+        <div style="display:flex;gap:16px;align-items:center">
+          <div id="emp-photo-box" style="width:100px;height:100px;border:2px dashed var(--border);border-radius:8px;background:#f3f4f6 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:11px;flex-shrink:0">No photo</div>
+          <div style="flex:1">
+            <div style="font-weight:600;color:var(--green);margin-bottom:6px" id="emp-badge-display">Badge: <span style="letter-spacing:.5px">—</span></div>
+            <input type="file" id="emp-photo-input" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handleEmpPhotoSelect(event)">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('emp-photo-input').click()">Upload Photo</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="emp-photo-remove-btn" style="display:none;margin-left:6px" onclick="deleteEmpPhoto()">Remove</button>
+            <button type="button" class="btn btn-secondary btn-sm" style="margin-left:6px" onclick="printIdCardFromModal()">Print ID Card</button>
+            <div style="font-size:11px;color:var(--t2);margin-top:6px">JPEG, PNG, or WebP. Max 5&nbsp;MB. Square crop recommended.</div>
+          </div>
+        </div>
+      </div>
       <!-- Personal -->
       <div class="fs">
         <div class="fs-title">Personal Information</div>
@@ -1469,6 +1499,21 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
       <div class="fg" style="margin-bottom:12px">
         <label>Display Name</label>
         <input type="text" id="u-display-name" placeholder="Full name (optional)">
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Email</label>
+        <input type="email" id="u-email" placeholder="user@example.com" autocomplete="off">
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Phone</label>
+        <input type="text" id="u-phone" placeholder="(555) 555-1234" autocomplete="off">
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Link to Employee</label>
+        <select id="u-employee-id">
+          <option value="">— No linked employee —</option>
+        </select>
+        <div style="font-size:11px;color:var(--t2);margin-top:4px">Links this login account to an employee record (for badge number and ID card).</div>
       </div>
       <div class="fg" style="margin-bottom:12px">
         <label>Role</label>
@@ -2035,8 +2080,10 @@ function buildDetail(e) {
     <div class="det-pos">${esc(e.position_om || e.position_ahca || 'No position assigned')}</div>
     <div class="det-meta">${typeLabel} · ${schedLabel}${e.supervisor?` · Supervisor: ${esc(e.supervisor)}`:''}</div>
     <span class="badge b-${e.status}"><span class="bdot"></span>${e.status==='active'?'Active':'Discharged'}</span>
+    ${e.badge_number?`<span class="badge" style="background:rgba(255,255,255,.18);color:#fff;margin-left:6px;letter-spacing:.5px">${esc(e.badge_number)}</span>`:''}
     <div class="det-acts" style="margin-top:14px">
       <button class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.25)" onclick="openEmpModal(${e.id});closeDetail()">Edit</button>
+      <button class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.25)" onclick="printIdCard(${e.id})">Print ID Card</button>
       ${e.status==='active'
         ?`<button class="btn btn-danger btn-sm" onclick="dischargeEmp(${e.id},'${esc(e.first_name)} ${esc(e.last_name)}')">Discharge</button>`
         :`<button class="btn btn-ok btn-sm" onclick="reactivateEmp(${e.id},'${esc(e.first_name)} ${esc(e.last_name)}')">Reactivate</button>`}
@@ -2218,10 +2265,13 @@ async function openEmpModal(id=null) {
   // Show/hide document upload area
   const docArea  = document.getElementById('doc-upload-area');
   const docPh    = document.getElementById('doc-upload-placeholder');
+  const photoSec = document.getElementById('photo-badge-section');
   if (id) {
     docArea.style.display = ''; docPh.style.display = 'none';
+    photoSec.style.display = '';
   } else {
     docArea.style.display = 'none'; docPh.style.display = '';
+    photoSec.style.display = 'none';
   }
   if (id) {
     try {
@@ -2231,11 +2281,90 @@ async function openEmpModal(id=null) {
         const el = document.getElementById('f-' + f);
         if (el) el.value = e[f] ?? '';
       });
+      // Badge number display
+      const badgeEl = document.getElementById('emp-badge-display');
+      badgeEl.innerHTML = 'Badge: <span style="letter-spacing:.5px">' + (e.badge_number ? esc(e.badge_number) : '—') + '</span>';
+      // Photo preview
+      showEmpPhoto(e.id, !!e.photo_url);
       // Load documents
       loadEmpDocuments(id).catch(()=>{});
     } catch(e) { toast(e.message, 'error'); return; }
   }
   document.getElementById('emp-modal').classList.add('open');
+}
+
+async function handleEmpPhotoSelect(ev) {
+  const file = ev.target.files?.[0];
+  if (!file) return;
+  const id = document.getElementById('f-id').value;
+  if (!id) { toast('Save the employee first, then upload a photo', 'warn'); ev.target.value=''; return; }
+  const fd = new FormData(); fd.append('photo', file);
+  try {
+    const r = await fetch(BASE_PATH + '/api/employees/' + id + '/photo', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Upload failed');
+    showEmpPhoto(id, true);
+    toast('Photo uploaded', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+  ev.target.value = '';
+}
+
+function showEmpPhoto(id, hasPhoto) {
+  const box = document.getElementById('emp-photo-box');
+  const removeBtn = document.getElementById('emp-photo-remove-btn');
+  if (!hasPhoto) {
+    box.style.backgroundImage = '';
+    box.textContent = 'No photo';
+    removeBtn.style.display = 'none';
+    return;
+  }
+  fetch(BASE_PATH + '/api/employees/' + id + '/photo', {
+    headers: { Authorization: 'Bearer ' + token }
+  }).then(r => r.ok ? r.blob() : null)
+    .then(blob => {
+      if (!blob) {
+        box.style.backgroundImage = '';
+        box.textContent = 'No photo';
+        removeBtn.style.display = 'none';
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      box.style.backgroundImage = 'url(' + url + ')';
+      box.textContent = '';
+      removeBtn.style.display = '';
+    });
+}
+
+async function deleteEmpPhoto() {
+  const id = document.getElementById('f-id').value;
+  if (!id) return;
+  if (!confirm('Remove this photo?')) return;
+  try {
+    await api('/api/employees/' + id + '/photo', 'DELETE');
+    showEmpPhoto(id, false);
+    toast('Photo removed', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function printIdCard(id) {
+  try {
+    const r = await fetch(BASE_PATH + '/api/employees/' + id + '/idcard', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!r.ok) throw new Error('Failed to load ID card');
+    const html = await r.text();
+    const w = window.open('', '_blank');
+    if (!w) { toast('Popup blocked — allow popups for ID cards', 'warn'); return; }
+    w.document.open(); w.document.write(html); w.document.close();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function printIdCardFromModal() {
+  const id = document.getElementById('f-id').value;
+  if (!id) { toast('Save the employee first, then print', 'warn'); return; }
+  printIdCard(id);
 }
 
 function closeEmpModal(ev) {
@@ -2424,9 +2553,15 @@ async function loadUsers() {
       const isActive  = u.active !== false && u.active !== 0;
       const statusCls = isActive ? 'b-active' : 'b-inactive';
       const statusLbl = isActive ? 'Active' : 'Inactive';
+      const linkedEmp = u.employee_id
+        ? `<div style="font-size:11px;color:var(--t2);margin-top:2px">↳ ${esc(u.employee_last_name||'')}, ${esc(u.employee_first_name||'')}${u.employee_badge?' · '+esc(u.employee_badge):''}</div>`
+        : '';
+      const contactLine = (u.email || u.phone)
+        ? `<div style="font-size:11px;color:var(--t2);margin-top:2px">${esc(u.email||'')}${u.email&&u.phone?' · ':''}${esc(u.phone||'')}</div>`
+        : '';
       return `<tr style="cursor:default">
-        <td><strong>${esc(u.username)}</strong></td>
-        <td>${esc(u.display_name || '—')}</td>
+        <td><strong>${esc(u.username)}</strong>${linkedEmp}</td>
+        <td>${esc(u.display_name || '—')}${contactLine}</td>
         <td><span class="badge ${badgeCls}">${roleLabel}</span></td>
         <td><span class="badge ${statusCls}"><span class="bdot"></span>${statusLbl}</span></td>
         <td style="font-size:12.5px;white-space:nowrap">${fmtDate(u.created_at)}</td>
@@ -2448,6 +2583,23 @@ async function loadUsers() {
   } catch(e) { tbody.innerHTML = `<tr><td colspan="6" class="tempty" style="color:var(--red)">${esc(e.message)}</td></tr>`; }
 }
 
+async function populateEmployeeSelect(selectedId=null) {
+  const sel = document.getElementById('u-employee-id');
+  sel.innerHTML = '<option value="">— No linked employee —</option>';
+  try {
+    const emps = await api('/api/employees');
+    const active = (emps || []).filter(e => e.status === 'active' || !e.status);
+    active.sort((a,b) => (a.last_name||'').localeCompare(b.last_name||''));
+    for (const e of active) {
+      const label = `${e.last_name || ''}, ${e.first_name || ''}${e.badge_number ? ' — '+e.badge_number : ''}`.trim();
+      const opt = document.createElement('option');
+      opt.value = e.id; opt.textContent = label;
+      if (selectedId && Number(selectedId) === e.id) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  } catch (e) { /* leave default option */ }
+}
+
 function openCreateUserModal() {
   document.getElementById('u-mode').value = 'create';
   document.getElementById('u-id').value = '';
@@ -2456,6 +2608,8 @@ function openCreateUserModal() {
   document.getElementById('u-password').value = '';
   document.getElementById('u-password-confirm').value = '';
   document.getElementById('u-display-name').value = '';
+  document.getElementById('u-email').value = '';
+  document.getElementById('u-phone').value = '';
   document.getElementById('u-role').value = 'viewer';
   document.getElementById('u-active').checked = true;
   document.getElementById('u-active-label').textContent = 'Active';
@@ -2463,6 +2617,7 @@ function openCreateUserModal() {
   document.getElementById('u-active-wrap').style.display = 'none';
   document.getElementById('user-modal-title').textContent = 'Add User';
   document.getElementById('user-modal-sub').textContent = 'Create a new user account';
+  populateEmployeeSelect(null);
   document.getElementById('user-modal').classList.add('open');
 }
 
@@ -2476,6 +2631,8 @@ async function openEditUserModal(id) {
     document.getElementById('u-username').value = u.username;
     document.getElementById('u-username').readOnly = true;
     document.getElementById('u-display-name').value = u.display_name || '';
+    document.getElementById('u-email').value = u.email || '';
+    document.getElementById('u-phone').value = u.phone || '';
     document.getElementById('u-role').value = u.role || 'viewer';
     const isActive = u.active !== false && u.active !== 0;
     document.getElementById('u-active').checked = isActive;
@@ -2484,6 +2641,7 @@ async function openEditUserModal(id) {
     document.getElementById('u-active-wrap').style.display = '';
     document.getElementById('user-modal-title').textContent = 'Edit User';
     document.getElementById('user-modal-sub').textContent = `Editing ${u.username}`;
+    await populateEmployeeSelect(u.employee_id);
     document.getElementById('user-modal').classList.add('open');
   } catch(e) { toast(e.message, 'error'); }
 }
@@ -2502,22 +2660,30 @@ async function saveUser() {
     const password = document.getElementById('u-password').value;
     const confirmPw = document.getElementById('u-password-confirm').value;
     const display_name = document.getElementById('u-display-name').value.trim();
+    const email = document.getElementById('u-email').value.trim();
+    const phone = document.getElementById('u-phone').value.trim();
+    const employee_id = document.getElementById('u-employee-id').value || null;
     const role = document.getElementById('u-role').value;
     if (!username) { toast('Username is required', 'warn'); return; }
     if (!password || password.length < 8) { toast('Password must be at least 8 characters', 'warn'); return; }
     if (password !== confirmPw) { toast('Passwords do not match', 'warn'); return; }
     try {
-      await api('/api/users', 'POST', { username, password, display_name: display_name || null, role });
+      await api('/api/users', 'POST', { username, password, display_name: display_name || null,
+        email: email || null, phone: phone || null, employee_id, role });
       toast('User created', 'success');
       document.getElementById('user-modal').classList.remove('open');
       loadUsers();
     } catch(e) { toast(e.message, 'error'); }
   } else {
     const display_name = document.getElementById('u-display-name').value.trim();
+    const email = document.getElementById('u-email').value.trim();
+    const phone = document.getElementById('u-phone').value.trim();
+    const employee_id = document.getElementById('u-employee-id').value || null;
     const role   = document.getElementById('u-role').value;
     const active = document.getElementById('u-active').checked;
     try {
-      await api(`/api/users/${id}`, 'PUT', { display_name: display_name || null, role, active });
+      await api(`/api/users/${id}`, 'PUT', { display_name: display_name || null,
+        email: email || null, phone: phone || null, employee_id, role, active });
       toast('User updated', 'success');
       document.getElementById('user-modal').classList.remove('open');
       loadUsers();
@@ -3033,7 +3199,47 @@ async function loadFacilitySettings() {
       const el = document.getElementById('set-' + f);
       if (el && d[f]) el.value = d[f];
     });
+    showOrgLogo(!!(d.org_logo_url && d.org_logo_url.trim()));
   } catch(e) { console.error('Load facility settings error:', e.message); }
+}
+
+function showOrgLogo(hasLogo) {
+  const box = document.getElementById('org-logo-box');
+  const removeBtn = document.getElementById('org-logo-remove-btn');
+  if (!hasLogo) {
+    box.style.backgroundImage = '';
+    box.textContent = 'No logo';
+    removeBtn.style.display = 'none';
+    return;
+  }
+  box.textContent = '';
+  box.style.backgroundImage = `url("${BASE_PATH}/api/settings/logo?t=${Date.now()}")`;
+  removeBtn.style.display = '';
+}
+
+async function handleOrgLogoSelect(ev) {
+  const file = ev.target.files?.[0];
+  if (!file) return;
+  const fd = new FormData(); fd.append('logo', file);
+  try {
+    const r = await fetch(BASE_PATH + '/api/settings/logo', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Upload failed');
+    showOrgLogo(true);
+    toast('Logo updated', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+  ev.target.value = '';
+}
+
+async function deleteOrgLogo() {
+  if (!confirm('Remove the organization logo?')) return;
+  try {
+    await api('/api/settings/logo', 'DELETE');
+    showOrgLogo(false);
+    toast('Logo removed', 'success');
+  } catch (e) { toast(e.message, 'error'); }
 }
 
 async function saveFacilitySettings() {
