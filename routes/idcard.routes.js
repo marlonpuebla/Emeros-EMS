@@ -139,15 +139,53 @@ module.exports = function (app) {
   </div>
   <div class="btn-row">
     <button class="btn" onclick="window.print()">Print</button>
+    <button class="btn secondary" onclick="downloadPng()">Download PNG (Bodno)</button>
     <button class="btn secondary" onclick="window.close()">Close</button>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js"></script>
   <script>
+    const BADGE = ${JSON.stringify(badge)};
+    const SAFE_NAME = ${JSON.stringify(fullName.replace(/[^\w]+/g, '_').replace(/^_+|_+$/g, ''))};
+
     try {
-      JsBarcode("#bc", ${JSON.stringify(badge)}, {
+      JsBarcode("#bc", BADGE, {
         format: "CODE128", height: 34, margin: 0, displayValue: false, width: 1.4
       });
     } catch (e) { console.error('Barcode render failed:', e); }
+
+    // 300 DPI PNG at exact CR80 (2.125in x 3.375in = 638 x 1013 px).
+    // Sized for import into Bodno ID Software.
+    async function downloadPng() {
+      const card = document.querySelector('.card');
+      const btnRow = document.querySelector('.btn-row');
+      const statusBtn = btnRow.querySelectorAll('button')[1];
+      const origText = statusBtn.textContent;
+      statusBtn.textContent = 'Rendering…';
+      statusBtn.disabled = true;
+      try {
+        const pxWide = 638;
+        const pxTall = 1013;
+        const pixelRatio = pxWide / card.offsetWidth;
+        const dataUrl = await htmlToImage.toPng(card, {
+          width: card.offsetWidth,
+          height: card.offsetHeight,
+          pixelRatio,
+          cacheBust: true,
+          style: { margin: '0', boxShadow: 'none' },
+        });
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = 'idcard_' + BADGE + (SAFE_NAME ? '_' + SAFE_NAME : '') + '.png';
+        document.body.appendChild(a); a.click(); a.remove();
+      } catch (e) {
+        console.error('PNG export failed:', e);
+        alert('Could not render PNG: ' + e.message);
+      } finally {
+        statusBtn.textContent = origText;
+        statusBtn.disabled = false;
+      }
+    }
   </script>
 </body>
 </html>`;
