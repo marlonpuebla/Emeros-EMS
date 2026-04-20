@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Secrets
+.env
+data/config.env
+
+# SQLite DBs (contain PII/PHI)
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
+# User uploads
+data/uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp

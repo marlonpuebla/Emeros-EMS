@@ -1,0 +1,2140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Credential File — Emeros EHR</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ================================================================
+   GLOBAL / RESET
+================================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green: #1e4d3b;
+  --green-light: #e8f0ec;
+  --green-mid: #2d6b53;
+  --ink: #1a1714;
+  --gray: #5c5c5c;
+  --gray-light: #999;
+  --border: #ccc;
+  --bg: #f5f5f5;
+}
+
+@page {
+  size: letter;
+  margin: 0.6in 0.65in;
+}
+
+html, body {
+  font-family: 'DM Sans', 'Georgia', serif;
+  font-size: 10.5pt;
+  line-height: 1.4;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+/* ================================================================
+   SCREEN-ONLY: TOOLBAR
+================================================================ */
+.toolbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: var(--green); color: #fff;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 24px; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.toolbar h1 { font-size: 15px; font-weight: 600; flex: 1; }
+.toolbar button {
+  background: #fff; color: var(--green); border: none;
+  padding: 8px 20px; border-radius: 6px; font-weight: 600;
+  font-family: inherit; cursor: pointer; font-size: 13px;
+}
+.toolbar button:hover { background: var(--green-light); }
+.toolbar .status { font-size: 12px; opacity: .85; }
+
+body { padding-top: 56px; }
+
+@media print {
+  .toolbar, .no-print, .sig-drawer, .btn-apply-sig, .upload-modal-overlay { display: none !important; }
+  body { padding-top: 0; background: #fff; font-size: 10pt; line-height: 1.35; }
+  .doc-section {
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+  .sig-block-area { page-break-inside: avoid !important; }
+  .signature-block { page-break-inside: avoid; }
+  .page-header { margin-bottom: 10px; padding-bottom: 6px; }
+  .page-header .org-name { font-size: 14pt; }
+  .page-header .org-address, .page-header .org-phone { font-size: 8.5pt; }
+  .page-footer { margin-top: 16px; }
+  .form-section { page-break-inside: avoid; }
+  .doc-title { font-size: 12pt; margin-bottom: 12px; }
+  .section-title { font-size: 9pt; margin-bottom: 6px; }
+  .legal-text { font-size: 9pt; line-height: 1.35; margin-bottom: 6px; }
+  .field-row { margin-bottom: 4px; }
+  .field-input { min-height: 18px; }
+  .form-table { font-size: 8.5pt; }
+  .form-table th { padding: 3px 5px; font-size: 7.5pt; }
+  .form-table td { padding: 3px 5px; }
+}
+
+/* ================================================================
+   DOCUMENT SECTIONS (flat, no nesting)
+================================================================ */
+.doc-section {
+  background: #fff;
+  max-width: 8.5in;
+  margin: 24px auto;
+  padding: 0.6in 0.65in;
+  box-shadow: 0 1px 6px rgba(0,0,0,.12);
+  page-break-before: always;
+  position: relative;
+}
+.doc-section:first-child { page-break-before: auto; }
+
+/* ================================================================
+   PAGE HEADER
+================================================================ */
+.page-header {
+  text-align: center;
+  padding-bottom: 10px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--green);
+}
+.page-header .org-name {
+  font-size: 16pt; font-weight: 700; color: var(--green);
+  margin-bottom: 2px; letter-spacing: 0.3px;
+}
+.page-header .org-address {
+  font-size: 9pt; color: var(--gray); margin-bottom: 1px;
+}
+.page-header .org-phone {
+  font-size: 9pt; color: var(--gray);
+}
+
+/* ================================================================
+   PAGE FOOTER
+================================================================ */
+.page-footer {
+  text-align: center; font-size: 8pt; color: var(--gray-light);
+  border-top: 1px solid #e0e0e0; padding-top: 6px;
+  margin-top: 30px;
+}
+
+/* ================================================================
+   DOCUMENT TITLE
+================================================================ */
+.doc-title {
+  font-size: 14pt; font-weight: 700; color: var(--green);
+  text-align: center; margin-bottom: 16px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.doc-subtitle {
+  font-size: 10pt; color: var(--gray); text-align: center;
+  margin-top: -10px; margin-bottom: 16px;
+}
+.doc-title-sm {
+  font-size: 11pt; font-weight: 700; color: var(--green);
+  text-align: center; margin-bottom: 12px;
+  text-transform: uppercase; letter-spacing: 0.4px;
+}
+
+/* ================================================================
+   FORM ELEMENTS
+================================================================ */
+.form-section {
+  margin-bottom: 10px;
+}
+.section-title {
+  font-size: 10pt; font-weight: 700; color: var(--green);
+  text-transform: uppercase; letter-spacing: 0.4px;
+  border-bottom: 1px solid var(--green-light);
+  padding-bottom: 3px; margin-bottom: 8px;
+}
+.field-row {
+  display: flex; gap: 12px; margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.field {
+  flex: 1; min-width: 0;
+}
+.field-label {
+  font-size: 8pt; font-weight: 600; color: var(--gray);
+  text-transform: uppercase; letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+.field-input {
+  border-bottom: 1px solid var(--border);
+  min-height: 22px; font-size: 10pt;
+  padding: 2px 0; color: var(--ink);
+  word-break: break-word;
+}
+.field-input.filled { color: var(--green); font-weight: 500; }
+
+/* Checkboxes */
+.checkbox-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 4px; font-size: 10pt;
+}
+.checkbox-box {
+  display: inline-block; width: 13px; height: 13px;
+  border: 1.5px solid var(--ink); border-radius: 2px;
+  flex-shrink: 0; text-align: center; line-height: 11px;
+  font-size: 9px; font-weight: 700;
+}
+
+/* Tables */
+.form-table {
+  width: 100%; border-collapse: collapse; margin-bottom: 10px;
+  font-size: 9.5pt;
+}
+.form-table th {
+  background: var(--green-light); color: var(--green);
+  font-weight: 600; font-size: 8pt; text-transform: uppercase;
+  letter-spacing: 0.3px; padding: 5px 6px; text-align: left;
+  border: 1px solid #d0d0d0;
+}
+.form-table td {
+  padding: 4px 6px; border: 1px solid #d0d0d0;
+  min-height: 20px; vertical-align: top;
+}
+
+/* Legal / paragraph text */
+.legal-text {
+  font-size: 9.5pt; line-height: 1.4; margin-bottom: 8px;
+  text-align: justify;
+}
+.legal-text.small { font-size: 8.5pt; line-height: 1.35; }
+.legal-text.indent { padding-left: 18px; }
+
+.list-alpha { list-style-type: lower-alpha; padding-left: 24px; }
+.list-alpha li { margin-bottom: 3px; font-size: 9.5pt; }
+.list-roman { list-style-type: lower-roman; padding-left: 24px; }
+.list-roman li { margin-bottom: 3px; font-size: 9.5pt; }
+
+.numbered-list { padding-left: 20px; }
+.numbered-list li { margin-bottom: 5px; font-size: 9.5pt; }
+
+.bullet-list { padding-left: 20px; list-style: disc; }
+.bullet-list li { margin-bottom: 4px; font-size: 9.5pt; }
+
+/* ================================================================
+   SIGNATURE LINES (new global-pad approach)
+================================================================ */
+.sig-line {
+  margin-bottom: 4px;
+}
+.sig-placeholder { min-height: 32px; border-bottom: 1px solid var(--ink); display: flex; align-items: flex-end; padding-bottom: 4px; }
+.sig-applied { min-height: 32px; border-bottom: 1px solid var(--ink); display: flex; align-items: flex-end; gap: 8px; padding-bottom: 2px; }
+.sig-applied img.sig-img { height: 38px; }
+.sig-applied .sig-verify { font-family: 'Courier New', monospace; font-size: 7.5pt; color: var(--gray-light); letter-spacing: 0.3px; }
+.sig-label { font-size: 8pt; font-weight: 600; color: var(--gray); text-transform: uppercase; margin-top: 2px; }
+.date-line { margin-bottom: 10px; }
+.date-line .field-input { min-height: 20px; border-bottom: 1px solid var(--ink); font-size: 10pt; }
+
+/* Signature block area — never split across pages */
+.sig-block-area {
+  page-break-inside: avoid;
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+.sig-row-pair {
+  display: flex; gap: 24px; margin-bottom: 8px;
+}
+.sig-row-pair > div { flex: 1; }
+
+/* Keep footer at bottom of printed page */
+@media print {
+  .doc-section {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .doc-content { flex: 1; }
+}
+
+.btn-apply-sig {
+  font-family: inherit; font-size: 11px; padding: 4px 14px;
+  background: var(--green); color: #fff; border: none;
+  border-radius: 4px; cursor: pointer; font-weight: 600;
+}
+.btn-apply-sig:hover { background: var(--green-mid); }
+
+.signature-block { margin-top: 10px; margin-bottom: 6px; }
+.sig-block-area .signature-block { margin-top: 8px; margin-bottom: 4px; }
+.signature-pair { display: flex; gap: 20px; }
+.signature-pair .sig-col { flex: 1; }
+.signature-pair .date-col { flex: 0 0 180px; }
+
+/* ================================================================
+   SIGNATURE DRAWER (floating, fixed at bottom)
+================================================================ */
+.sig-drawer {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #fff; border-top: 3px solid var(--green);
+  box-shadow: 0 -4px 20px rgba(0,0,0,.15);
+  padding: 12px 24px; z-index: 900;
+  display: flex; align-items: center; gap: 16px;
+  transition: transform 0.3s ease;
+}
+.sig-drawer.collapsed { transform: translateY(calc(100% - 40px)); }
+.sig-drawer .drawer-toggle {
+  position: absolute; top: -32px; right: 24px;
+  background: var(--green); color: #fff; border: none;
+  padding: 6px 16px; border-radius: 6px 6px 0 0;
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer;
+}
+.sig-drawer canvas {
+  border: 1px dashed var(--border); border-radius: 4px;
+  cursor: crosshair; background: #fafafa; flex-shrink: 0;
+}
+.sig-drawer .drawer-actions {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sig-drawer .drawer-actions button {
+  font-family: inherit; font-size: 12px; padding: 6px 18px;
+  border: 1px solid var(--border); border-radius: 4px;
+  cursor: pointer; background: #fff; font-weight: 600;
+}
+.sig-drawer .drawer-actions button.btn-done {
+  background: var(--green); color: #fff; border-color: var(--green);
+}
+.sig-drawer .drawer-status {
+  font-size: 12px; color: var(--gray); flex: 1;
+}
+.sig-drawer .drawer-status.has-sig { color: var(--green); font-weight: 600; }
+
+body { padding-bottom: 90px; }
+
+/* ================================================================
+   ATTESTATION: compact 2-column offense lists
+================================================================ */
+.offense-list-compact {
+  columns: 2;
+  column-gap: 16px;
+  font-size: 8pt;
+  line-height: 1.35;
+}
+.offense-list-compact li {
+  margin-bottom: 2px;
+  font-size: 8pt;
+  page-break-inside: avoid;
+}
+
+/* ================================================================
+   RATING GRID
+================================================================ */
+.rating-grid { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.rating-grid th, .rating-grid td {
+  border: 1px solid #d0d0d0; padding: 4px 6px; font-size: 9pt;
+}
+.rating-grid th {
+  background: var(--green-light); color: var(--green);
+  font-weight: 600; text-align: center; font-size: 8pt;
+  text-transform: uppercase;
+}
+.rating-grid td:first-child { font-weight: 500; }
+.rating-grid td:not(:first-child) { text-align: center; width: 70px; }
+
+/* ================================================================
+   COVER PAGE
+================================================================ */
+.cover-center {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 8in; text-align: center;
+}
+.cover-org {
+  font-size: 24pt; font-weight: 700; color: var(--green);
+  margin-bottom: 8px;
+}
+.cover-divider {
+  width: 200px; height: 3px; background: var(--green);
+  margin: 16px auto;
+}
+.cover-title {
+  font-size: 18pt; font-weight: 600; color: var(--ink);
+  margin-bottom: 24px;
+}
+.cover-meta {
+  font-size: 11pt; color: var(--gray); margin-bottom: 6px;
+}
+.cover-meta strong { color: var(--ink); }
+
+.toc { text-align: left; max-width: 460px; margin: 30px auto 0; }
+.toc-title { font-size: 11pt; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+.toc-item {
+  display: flex; justify-content: space-between;
+  padding: 3px 0; font-size: 9.5pt; border-bottom: 1px dotted #ddd;
+}
+
+/* ================================================================
+   UTILITIES
+================================================================ */
+.spacer-sm { height: 8px; }
+.spacer-md { height: 16px; }
+.spacer-lg { height: 24px; }
+.bold { font-weight: 700; }
+.underline { text-decoration: underline; }
+.text-center { text-align: center; }
+.text-green { color: var(--green); }
+.text-small { font-size: 9pt; }
+.text-xs { font-size: 8pt; }
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.no-break { page-break-inside: avoid; }
+
+/* ================================================================
+   LOADING / ERROR
+================================================================ */
+.loading-overlay {
+  position: fixed; inset: 0; background: rgba(255,255,255,.95);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 9999;
+}
+.loading-overlay .spinner {
+  width: 40px; height: 40px; border: 3px solid var(--green-light);
+  border-top-color: var(--green); border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-overlay p { margin-top: 12px; color: var(--gray); font-size: 13px; }
+
+.error-banner {
+  background: #fdecea; color: #b71c1c; padding: 20px;
+  text-align: center; margin: 40px auto; max-width: 500px;
+  border-radius: 8px; font-size: 14px;
+}
+
+/* ================================================================
+   UPLOAD MODAL
+================================================================ */
+.upload-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000;
+}
+.upload-modal {
+  background: #fff; border-radius: 10px; padding: 28px;
+  max-width: 540px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,.2);
+}
+.upload-modal h2 {
+  font-size: 16px; color: var(--green); margin-bottom: 16px;
+}
+.upload-modal label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--gray); margin-bottom: 4px; margin-top: 12px;
+}
+.upload-modal select, .upload-modal input[type="file"] {
+  width: 100%; padding: 8px; border: 1px solid var(--border);
+  border-radius: 6px; font-family: inherit; font-size: 13px;
+}
+.upload-modal .upload-btn {
+  margin-top: 16px; background: var(--green); color: #fff;
+  border: none; padding: 10px 24px; border-radius: 6px;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; width: 100%;
+}
+.upload-modal .upload-btn:hover { background: var(--green-mid); }
+.upload-modal .upload-btn:disabled { opacity: .5; cursor: not-allowed; }
+.upload-modal .cancel-btn {
+  margin-top: 8px; background: none; color: var(--gray);
+  border: 1px solid var(--border); padding: 8px 24px; border-radius: 6px;
+  font-family: inherit; font-size: 13px; cursor: pointer; width: 100%;
+}
+.uploaded-docs-list {
+  margin-top: 16px; border-top: 1px solid #eee; padding-top: 12px;
+}
+.uploaded-docs-list h3 {
+  font-size: 13px; color: var(--green); margin-bottom: 8px;
+}
+.uploaded-doc-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px;
+}
+.uploaded-doc-item .doc-name { font-weight: 600; color: var(--ink); }
+.uploaded-doc-item .doc-date { color: var(--gray-light); font-size: 11px; }
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR (screen only) -->
+<div class="toolbar no-print" id="toolbar">
+  <h1>Employee Credential File</h1>
+  <span class="status" id="toolbarStatus">Loading...</span>
+  <button onclick="uploadModal()">Upload Signed Document</button>
+  <button onclick="downloadPDF()">Download PDF</button>
+  <button onclick="window.print()">Print All</button>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <p>Loading hiring package...</p>
+</div>
+
+<!-- CONTENT -->
+<div id="documentContent"></div>
+
+<!-- GLOBAL SIGNATURE DRAWER (fixed at bottom) -->
+<div class="sig-drawer no-print" id="sigDrawer">
+  <button class="drawer-toggle" onclick="toggleDrawer()">Signature Pad</button>
+  <canvas id="globalSigCanvas" width="500" height="150"></canvas>
+  <div class="drawer-actions">
+    <button onclick="clearGlobalSig()">Clear</button>
+    <button class="btn-done" onclick="lockGlobalSig()">Done</button>
+  </div>
+  <div class="drawer-status" id="drawerStatus">Draw your signature above, then click "Done" to lock it in.</div>
+</div>
+
+<!-- UPLOAD MODAL (hidden) -->
+<div class="upload-modal-overlay" id="uploadModalOverlay" style="display:none">
+  <div class="upload-modal">
+    <h2>Upload Signed Document</h2>
+    <label for="uploadDocName">Document Name</label>
+    <select id="uploadDocName"></select>
+    <label for="uploadFile">File (PDF, PNG, JPEG — max 20 MB)</label>
+    <input type="file" id="uploadFile" accept=".pdf,.png,.jpg,.jpeg">
+    <button class="upload-btn" id="uploadBtn" onclick="doUpload()">Upload</button>
+    <button class="cancel-btn" onclick="closeUploadModal()">Cancel</button>
+    <div class="uploaded-docs-list" id="uploadedDocsList"></div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   GLOBALS
+================================================================ */
+let PKG = null;
+let SETTINGS = {};
+let SIGNATURES = [];
+let UPLOADED_DOCS = [];
+let TOKEN = '';
+let PKG_ID = '';
+let globalSigData = null; // base64 PNG once locked
+let drawerCollapsed = false;
+
+/* ================================================================
+   GLOBAL SIGNATURE PAD
+================================================================ */
+const globalCanvas = document.getElementById('globalSigCanvas');
+const globalCtx = globalCanvas.getContext('2d');
+let drawing = false;
+
+globalCtx.lineWidth = 2;
+globalCtx.lineCap = 'round';
+globalCtx.strokeStyle = '#1a1714';
+
+globalCanvas.addEventListener('mousedown', e => { drawing = true; const r = globalCanvas.getBoundingClientRect(); globalCtx.beginPath(); globalCtx.moveTo(e.clientX - r.left, e.clientY - r.top); });
+globalCanvas.addEventListener('mousemove', e => { if (!drawing) return; const r = globalCanvas.getBoundingClientRect(); globalCtx.lineTo(e.clientX - r.left, e.clientY - r.top); globalCtx.stroke(); });
+globalCanvas.addEventListener('mouseup', () => drawing = false);
+globalCanvas.addEventListener('mouseleave', () => drawing = false);
+globalCanvas.addEventListener('touchstart', e => { e.preventDefault(); const t = e.touches[0]; const r = globalCanvas.getBoundingClientRect(); drawing = true; globalCtx.beginPath(); globalCtx.moveTo(t.clientX - r.left, t.clientY - r.top); });
+globalCanvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const t = e.touches[0]; const r = globalCanvas.getBoundingClientRect(); globalCtx.lineTo(t.clientX - r.left, t.clientY - r.top); globalCtx.stroke(); });
+globalCanvas.addEventListener('touchend', e => { e.preventDefault(); drawing = false; });
+
+function isCanvasEmpty() {
+  const d = globalCtx.getImageData(0, 0, globalCanvas.width, globalCanvas.height).data;
+  return !d.some((v, i) => i % 4 === 3 && v > 0);
+}
+
+function clearGlobalSig() {
+  globalCtx.clearRect(0, 0, globalCanvas.width, globalCanvas.height);
+  globalSigData = null;
+  document.getElementById('drawerStatus').textContent = 'Draw your signature above, then click "Done" to lock it in.';
+  document.getElementById('drawerStatus').className = 'drawer-status';
+}
+
+function lockGlobalSig() {
+  if (isCanvasEmpty()) { alert('Please draw your signature first.'); return; }
+  globalSigData = globalCanvas.toDataURL('image/png');
+  document.getElementById('drawerStatus').textContent = 'Signature locked. Click "Apply Signature" on any line to stamp it.';
+  document.getElementById('drawerStatus').className = 'drawer-status has-sig';
+}
+
+function toggleDrawer() {
+  drawerCollapsed = !drawerCollapsed;
+  document.getElementById('sigDrawer').classList.toggle('collapsed', drawerCollapsed);
+}
+
+/* ================================================================
+   APPLY SIGNATURE TO A LINE
+================================================================ */
+async function applySig(uid, docName, label) {
+  if (!globalSigData) {
+    alert('Please draw and lock your signature in the pad at the bottom of the screen first.');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/signatures', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        signer_name: candidateName(),
+        signer_role: label,
+        entity_type: 'hiring_package',
+        entity_id: Number(PKG_ID),
+        document_name: docName,
+        signature_data: globalSigData
+      })
+    });
+    if (!res.ok) throw new Error('Failed to save signature');
+    const result = await res.json();
+
+    // Hide placeholder, show applied
+    const block = document.getElementById('sig_' + uid);
+    if (block) {
+      block.querySelector('.sig-placeholder').style.display = 'none';
+      const applied = block.querySelector('.sig-applied');
+      applied.style.display = 'flex';
+      applied.querySelector('.sig-img').src = globalSigData;
+      applied.querySelector('.sig-verify').textContent =
+        'Verified: ' + (result.verification_code || result.signature_hash?.substring(0,12).toUpperCase() || '') + ' | ' + new Date().toLocaleString();
+    }
+
+    // Fill date
+    const dateEl = document.getElementById('date_' + uid);
+    if (dateEl) {
+      const di = dateEl.querySelector('.field-input');
+      if (di) di.textContent = new Date().toLocaleDateString();
+    }
+  } catch (err) {
+    alert('Error saving signature: ' + err.message);
+  }
+}
+
+/* ================================================================
+   INIT
+================================================================ */
+(async function init() {
+  const params = new URLSearchParams(window.location.search);
+  PKG_ID = params.get('id');
+  TOKEN = params.get('token');
+  if (!PKG_ID || !TOKEN) {
+    showError('Missing package ID or authentication token in URL.');
+    return;
+  }
+  try {
+    const headers = { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' };
+    const [pkgRes, settingsRes, sigsRes, docsRes] = await Promise.all([
+      fetch('/api/hiring/packages/' + PKG_ID, { headers }),
+      fetch('/api/settings', { headers }),
+      fetch('/api/signatures/hiring_package/' + PKG_ID, { headers }),
+      fetch('/api/hiring/packages/' + PKG_ID + '/documents', { headers }).catch(() => null)
+    ]);
+    if (!pkgRes.ok) throw new Error('Failed to load package (HTTP ' + pkgRes.status + ')');
+    if (!settingsRes.ok) throw new Error('Failed to load settings');
+
+    PKG = await pkgRes.json();
+    SETTINGS = await settingsRes.json();
+    SIGNATURES = sigsRes.ok ? await sigsRes.json() : [];
+    UPLOADED_DOCS = docsRes && docsRes.ok ? await docsRes.json() : [];
+
+    document.getElementById('toolbarStatus').textContent = PKG.candidate_name + ' — ' + (PKG.position || 'N/A');
+    render();
+  } catch (err) {
+    showError(err.message);
+  }
+})();
+
+function showError(msg) {
+  document.getElementById('loadingOverlay').innerHTML =
+    '<div class="error-banner">' + msg + '</div>';
+}
+
+/* ================================================================
+   HELPERS
+================================================================ */
+function org(key, fallback) { return SETTINGS[key] || fallback || ''; }
+function orgName() { return org('org_name', 'Organization'); }
+function orgAddress() {
+  const parts = [org('org_address'), org('org_city'), org('org_state'), org('org_zip')].filter(Boolean);
+  if (parts.length >= 3) return org('org_address') + ', ' + org('org_city') + ', ' + org('org_state') + ' ' + org('org_zip');
+  return parts.join(', ');
+}
+function orgPhone() { return org('org_phone', ''); }
+
+function todayFormatted() {
+  return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function candidateName() { return (PKG && PKG.candidate_name) || ''; }
+function position() { return (PKG && PKG.position) || ''; }
+
+function esc(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function pageHeader() {
+  return `<div class="page-header">
+    <div class="org-name">${esc(orgName())}</div>
+    <div class="org-address">${esc(orgAddress())}</div>
+    ${orgPhone() ? `<div class="org-phone">${esc(orgPhone())}</div>` : ''}
+  </div>`;
+}
+
+function pageFooter(label) {
+  return `<div class="page-footer">Confidential &mdash; ${esc(orgName())} &middot; ${label || ''}</div>`;
+}
+
+function fieldRow(...fields) {
+  return `<div class="field-row">${fields.join('')}</div>`;
+}
+
+function field(label, value, style) {
+  const cls = value ? 'field-input filled' : 'field-input';
+  const sty = style ? ` style="${style}"` : '';
+  return `<div class="field"${sty}><div class="field-label">${label}</div><div class="${cls}">${esc(value || '')}&nbsp;</div></div>`;
+}
+
+function fieldFixed(label, value, width) {
+  const cls = value ? 'field-input filled' : 'field-input';
+  return `<div class="field" style="flex:0 0 ${width}"><div class="field-label">${label}</div><div class="${cls}">${esc(value || '')}&nbsp;</div></div>`;
+}
+
+function checkbox(label, checked) {
+  const mark = checked ? '&#10003;' : '';
+  return `<div class="checkbox-row"><span class="checkbox-box">${mark}</span> ${label}</div>`;
+}
+
+/* ================================================================
+   SIGNATURE BLOCK (new approach: apply button, no per-line canvas)
+================================================================ */
+function sigBlock(docName, label, dateLabel) {
+  const uid = (docName || '').replace(/\W/g, '_') + '_' + (label || '').replace(/\W/g, '_');
+  const existing = SIGNATURES.find(s => s.document_name === docName && s.signer_role === label);
+
+  if (existing) {
+    return `<div class="signature-block no-break">
+      <div class="signature-pair">
+        <div class="sig-col">
+          <div class="sig-line" id="sig_${uid}">
+            <div class="sig-applied" style="display:flex">
+              <img class="sig-img" src="${existing.signature_data || ''}">
+              <span class="sig-verify">Verified: ${existing.signature_hash ? existing.signature_hash.substring(0, 12).toUpperCase() : ''} | ${existing.signed_at || ''}</span>
+            </div>
+            <div class="sig-label">${esc(label || 'Signature')}</div>
+          </div>
+        </div>
+        <div class="date-col">
+          <div class="date-line" id="date_${uid}">
+            <div class="field-input filled">${existing.signed_at ? esc(new Date(existing.signed_at).toLocaleDateString()) : '&nbsp;'}</div>
+            <div class="sig-label">${dateLabel || 'Date'}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="signature-block no-break">
+    <div class="signature-pair">
+      <div class="sig-col">
+        <div class="sig-line" id="sig_${uid}">
+          <div class="sig-placeholder">
+            <button class="btn-apply-sig" onclick="applySig('${uid}','${esc(docName).replace(/'/g,"\\'")}','${esc(label).replace(/'/g,"\\'")}')">Apply Signature</button>
+          </div>
+          <div class="sig-applied" style="display:none">
+            <img class="sig-img" src="">
+            <span class="sig-verify"></span>
+          </div>
+          <div class="sig-label">${esc(label || 'Signature')}</div>
+        </div>
+      </div>
+      <div class="date-col">
+        <div class="date-line" id="date_${uid}">
+          <div class="field-input">&nbsp;</div>
+          <div class="sig-label">${dateLabel || 'Date'}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ================================================================
+   PDF DOWNLOAD (jsPDF + html2canvas)
+================================================================ */
+async function downloadPDF() {
+  const toolbar = document.getElementById('toolbar');
+  const drawer = document.getElementById('sigDrawer');
+  toolbar.style.display = 'none';
+  drawer.style.display = 'none';
+  document.body.style.paddingTop = '0';
+  document.body.style.paddingBottom = '0';
+  document.body.style.background = '#fff';
+
+  // Hide all apply buttons
+  document.querySelectorAll('.btn-apply-sig').forEach(b => b.style.display = 'none');
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'in', format: 'letter' });
+  const sections = document.querySelectorAll('.doc-section');
+  let first = true;
+
+  for (const section of sections) {
+    if (!first) pdf.addPage();
+    first = false;
+    const canvas = await html2canvas(section, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const pageW = 8.5;
+    const pageH = 11;
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    if (imgH <= pageH) {
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
+    } else {
+      // Scale to fit
+      const scale = pageH / imgH;
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgW * scale, pageH);
+    }
+  }
+
+  const name = (candidateName() || 'Candidate').replace(/\s+/g, '_');
+  pdf.save('Hiring_Package_' + name + '.pdf');
+
+  // Restore UI
+  toolbar.style.display = '';
+  drawer.style.display = '';
+  document.body.style.paddingTop = '';
+  document.body.style.paddingBottom = '';
+  document.body.style.background = '';
+  document.querySelectorAll('.btn-apply-sig').forEach(b => b.style.display = '');
+}
+
+/* ================================================================
+   UPLOAD SIGNED DOCUMENT
+================================================================ */
+function uploadModal() {
+  const overlay = document.getElementById('uploadModalOverlay');
+  overlay.style.display = 'flex';
+  populateDocDropdown();
+  renderUploadedDocs();
+}
+
+function closeUploadModal() {
+  document.getElementById('uploadModalOverlay').style.display = 'none';
+}
+
+function populateDocDropdown() {
+  const sel = document.getElementById('uploadDocName');
+  sel.innerHTML = '';
+  const docs = [
+    'Employment Application', 'Emergency Contact Information', 'Reference Form',
+    'Attestation of Compliance', 'Employee Code of Conduct', 'Personnel Policies',
+    'Employee Acknowledgment Form', 'Abuse and Neglect Statement',
+    'Confidential Affairs Agreement', 'Privacy Policy Acknowledgment',
+    'HIPAA Compliance Form', 'Drug-Free Workplace Acknowledgment',
+    'TB Screening Declaration', 'Hepatitis B Vaccination Declaration',
+    'Bloodborne Pathogen Training Acknowledgment', 'CPR/BLS Certification Acknowledgment',
+    'Supervision Agreement', 'Independent Contractor Information',
+    'Offer of Employment', 'Acceptance of Employment',
+    'W-4 Tax Withholding', 'W-9 Taxpayer Identification',
+    'I-9 Employment Eligibility', 'Direct Deposit Authorization',
+    'Phase Completion Sign-Off'
+  ];
+  docs.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    sel.appendChild(opt);
+  });
+}
+
+function renderUploadedDocs() {
+  const container = document.getElementById('uploadedDocsList');
+  if (!UPLOADED_DOCS || UPLOADED_DOCS.length === 0) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--gray-light);padding:8px 0;">No uploaded documents yet.</div>';
+    return;
+  }
+  let html = '<h3>Previously Uploaded</h3>';
+  UPLOADED_DOCS.forEach(d => {
+    html += `<div class="uploaded-doc-item">
+      <span class="doc-name">${esc(d.document_name || d.name || 'Document')}</span>
+      <span class="doc-date">${d.uploaded_at ? new Date(d.uploaded_at).toLocaleDateString() : ''}</span>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+async function doUpload() {
+  const docName = document.getElementById('uploadDocName').value;
+  const fileInput = document.getElementById('uploadFile');
+  if (!fileInput.files.length) { alert('Please select a file.'); return; }
+  const file = fileInput.files[0];
+  if (file.size > 20 * 1024 * 1024) { alert('File exceeds 20 MB limit.'); return; }
+
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.textContent = 'Uploading...';
+
+  try {
+    const formData = new FormData();
+    formData.append('document_name', docName);
+    formData.append('file', file);
+    const res = await fetch('/api/hiring/packages/' + PKG_ID + '/documents', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN },
+      body: formData
+    });
+    if (!res.ok) throw new Error('Upload failed (HTTP ' + res.status + ')');
+    const result = await res.json();
+    UPLOADED_DOCS.push(result);
+    renderUploadedDocs();
+    fileInput.value = '';
+    alert('Document uploaded successfully.');
+  } catch (err) {
+    alert('Error uploading: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Upload';
+  }
+}
+
+/* ================================================================
+   DOCUMENT GENERATORS
+================================================================ */
+
+/* ----------------------------------------------------------------
+   1. COVER PAGE
+---------------------------------------------------------------- */
+function docCoverPage() {
+  const isContracted = isContractedRole();
+  const isIntern = isInternRole();
+  const docs = [
+    'Employment Application',
+    'Emergency Contact Information',
+    'Reference Form',
+    'Attestation of Compliance with Background Screening Requirements',
+    'Employee Code of Conduct',
+    'Personnel Policies',
+    'Employee Acknowledgment Form',
+    'Abuse and Neglect Statement of Acknowledgment',
+    'Confidential Nature of Corporation Affairs Agreement',
+    'Privacy Policy Acknowledgment Form',
+    'Employee HIPAA Compliance Signature Form',
+    'Drug-Free Workplace Acknowledgment',
+    'Tuberculosis Screening Declaration',
+    'Hepatitis B Vaccination Declaration',
+    'Bloodborne Pathogen / Infection Control Training Acknowledgment',
+    'CPR/BLS Certification Acknowledgment'
+  ];
+  if (isIntern) docs.push('Supervision Agreement');
+  if (isContracted) docs.push('Independent Contractor Information');
+  docs.push('Offer of Employment Letter', 'Acceptance of Employment');
+  if (!isContracted) docs.push('W-4 Substitute / Tax Withholding Declaration');
+  if (isContracted) docs.push('W-9 Substitute / Taxpayer Identification Request');
+  docs.push('I-9 Employment Eligibility Acknowledgment', 'Direct Deposit Authorization', 'Phase Completion Sign-Off');
+
+  return `<section class="doc-section">
+    <div class="cover-center">
+      <div class="cover-org">${esc(orgName())}</div>
+      <div class="cover-divider"></div>
+      <div class="cover-title">Employee Credential File</div>
+      <div class="spacer-md"></div>
+      <div class="cover-meta"><strong>Candidate:</strong> ${esc(candidateName())}</div>
+      <div class="cover-meta"><strong>Position:</strong> ${esc(position())}</div>
+      <div class="cover-meta"><strong>Date:</strong> ${todayFormatted()}</div>
+      <div class="cover-meta"><strong>Assigned To:</strong> ${esc(PKG.assigned_to || '')}</div>
+      <div class="spacer-lg"></div>
+      <div class="toc">
+        <div class="toc-title">Table of Contents</div>
+        ${docs.map((d, i) => `<div class="toc-item"><span>${i + 1}. ${d}</span></div>`).join('')}
+      </div>
+    </div>
+    ${pageFooter('Cover Page')}
+  </section>`;
+}
+
+/* ----------------------------------------------------------------
+   2. EMPLOYMENT APPLICATION (2 pages)
+---------------------------------------------------------------- */
+function docEmploymentApplication() {
+  let h = '';
+  h += `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Employment Application</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Applicant Information</div>`;
+  h += fieldRow(field('Full Name', candidateName()), fieldFixed('Date', todayFormatted(), '160px'));
+  h += fieldRow(field('Street Address', ''), fieldFixed('Apartment/Unit #', '', '140px'));
+  h += fieldRow(field('City', ''), fieldFixed('State', '', '100px'), fieldFixed('Zip Code', '', '100px'));
+  h += fieldRow(field('Phone', ''), field('Email', ''));
+  h += fieldRow(field('Date Available', ''), field('Social Security Number', ''), field('Desired Salary', ''));
+  h += fieldRow(field('Position Applied For', position()));
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Eligibility</div>`;
+  h += `<div class="field-row"><div class="field">${checkbox('Are you a citizen of the United States?', false)} ${checkbox('Yes', false)} ${checkbox('No', false)}</div></div>`;
+  h += `<div class="field-row"><div class="field">${checkbox('Are you authorized to work in the United States?', false)} ${checkbox('Yes', false)} ${checkbox('No', false)}</div></div>`;
+  h += `<div class="field-row"><div class="field">${checkbox('Have you ever worked for this company?', false)} ${checkbox('Yes', false)} ${checkbox('No', false)}</div></div>`;
+  h += fieldRow(field('If yes, when?', ''));
+  h += `<div class="field-row"><div class="field">${checkbox('Have you ever been convicted of a felony?', false)} ${checkbox('Yes', false)} ${checkbox('No', false)}</div></div>`;
+  h += fieldRow(field('If yes, explain', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Education</div>
+  <table class="form-table">
+    <colgroup>
+      <col style="width:12%"><col style="width:24%"><col style="width:24%">
+      <col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:14%">
+    </colgroup>
+    <tr><th></th><th>School Name</th><th>Address</th><th>From</th><th>To</th><th>Graduated?</th><th>Diploma/Degree</th></tr>
+    <tr><td style="font-weight:600">High School</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+    <tr><td style="font-weight:600">College</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+    <tr><td style="font-weight:600">Other</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+  </table></div>`;
+
+  h += `<div class="form-section"><div class="section-title">References</div>
+  <div class="legal-text small">Please list three professional references.</div>
+  <table class="form-table">
+    <tr><th>Full Name</th><th>Company</th><th>Address</th><th>Relationship</th><th>Phone</th></tr>
+    <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+    <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+    <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+  </table></div>`;
+
+  h += `${pageFooter('Employment Application — Page 1')}</section>`;
+
+  // Page 2
+  h += `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title-sm">Employment Application (continued)</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Previous Employment</div>`;
+  for (let i = 1; i <= 3; i++) {
+    h += `<div class="text-small bold mb-1 no-break">Employer ${i}</div>`;
+    h += fieldRow(field('Company', ''), field('Phone', ''));
+    h += fieldRow(field('Address', ''), field('Supervisor', ''));
+    h += fieldRow(field('Job Title', ''), field('Starting Salary', ''), field('Ending Salary', ''));
+    h += fieldRow(field('Responsibilities', ''));
+    h += fieldRow(fieldFixed('From', '', '120px'), fieldFixed('To', '', '120px'), field('Reason for Leaving', ''));
+    h += `<div class="field-row"><div class="field">${checkbox('May we contact this employer?', false)} ${checkbox('Yes', false)} ${checkbox('No', false)}</div></div>`;
+    if (i < 3) h += `<div class="spacer-sm"></div>`;
+  }
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Military Service</div>`;
+  h += fieldRow(field('Branch', ''), fieldFixed('From', '', '120px'), fieldFixed('To', '', '120px'));
+  h += fieldRow(field('Rank at Discharge', ''), field('Type of Discharge', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Disclaimer and Signature</div>
+  <div class="legal-text">I certify that my answers are true and complete to the best of my knowledge. If this application leads to employment, I understand that false or misleading information in my application may result in my release.</div>`;
+  h += sigBlock('Employment Application', 'Employee Signature', 'Date');
+  h += `</div>`;
+
+  h += `${pageFooter('Employment Application — Page 2')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   3. EMERGENCY CONTACT INFORMATION
+---------------------------------------------------------------- */
+function docEmergencyContact() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Emergency Contact Information</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Personal Information</div>`;
+  h += fieldRow(field('Full Name', candidateName()));
+  h += fieldRow(field('Street Address', ''), fieldFixed('Apartment/Unit #', '', '140px'));
+  h += fieldRow(field('City', ''), fieldFixed('State', '', '100px'), fieldFixed('Zip Code', '', '100px'));
+  h += fieldRow(field('Home Phone', ''), field('Alternate Phone', ''));
+  h += fieldRow(field('Email Address', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Emergency Contact 1</div>`;
+  h += fieldRow(field('Full Name', ''), field('Relationship', ''));
+  h += fieldRow(field('Street Address', ''), fieldFixed('Apartment/Unit #', '', '140px'));
+  h += fieldRow(field('City', ''), fieldFixed('State', '', '100px'), fieldFixed('Zip Code', '', '100px'));
+  h += fieldRow(field('Primary Phone', ''), field('Alternate Phone', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Emergency Contact 2</div>`;
+  h += fieldRow(field('Full Name', ''), field('Relationship', ''));
+  h += fieldRow(field('Street Address', ''), fieldFixed('Apartment/Unit #', '', '140px'));
+  h += fieldRow(field('City', ''), fieldFixed('State', '', '100px'), fieldFixed('Zip Code', '', '100px'));
+  h += fieldRow(field('Primary Phone', ''), field('Alternate Phone', ''));
+  h += `</div>`;
+
+  h += `${pageFooter('Emergency Contact Information')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   4. REFERENCE FORM
+---------------------------------------------------------------- */
+function docReferenceForm() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Reference Form</div>`;
+
+  h += fieldRow(field('Applicant Name', candidateName()), fieldFixed('Date', todayFormatted(), '160px'));
+  h += fieldRow(field('Position Applied For', position()));
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="form-section"><div class="section-title">Previous Employer</div>`;
+  h += fieldRow(field('Contact Person', ''), field('Title', ''));
+  h += fieldRow(field('Phone', ''), field('Email', ''));
+  h += fieldRow(field('Company Name', ''));
+  h += fieldRow(field('Address', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Reference Comments</div>`;
+  h += `<div class="field-row">${checkbox('Interview by phone', false)} ${checkbox('Send by email', false)}</div>`;
+  h += `<div class="field-row"><div class="field">${checkbox('Was applicant an employee?', false)} ${checkbox('Yes', false)} ${checkbox('No', false)}</div></div>`;
+  h += fieldRow(fieldFixed('When? Start Date', '', '200px'), fieldFixed('End Date', '', '200px'));
+  h += fieldRow(field('Position at last day', ''));
+  h += `<div class="field-row"><div class="field">${checkbox('Would you rehire?', false)} ${checkbox('Yes', false)} ${checkbox('No', false)}</div></div>`;
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Rating</div>
+  <table class="rating-grid">
+    <tr><th>Criteria</th><th>Excellent</th><th>Very Good</th><th>Good</th><th>Poor</th></tr>
+    ${['Ability to Accept Directions','Ability to Work with Others','Attendance','Grooming and Appearance','Honesty','Initiative','Job Knowledge','Job Skill','Judgment','Time Management']
+      .map(r => `<tr><td>${r}</td><td></td><td></td><td></td><td></td></tr>`).join('')}
+  </table></div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += fieldRow(field('Completed by (Name)', ''));
+  h += sigBlock('Reference Form', 'Completed By Signature', 'Date');
+
+  h += `${pageFooter('Reference Form')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   5. ATTESTATION OF COMPLIANCE (compact, ~3 pages)
+---------------------------------------------------------------- */
+function docAttestationCompliance() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Attestation of Compliance with Background Screening Requirements</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Authority</div>
+  <div class="legal-text small">Sections 435.05(2) and 408.809(2), Florida Statutes, require that the employer or licensing agency, as applicable, must notify each employee, contractor, or licensee required to be screened by this chapter, that he or she must participate in the attestation process described herein.</div></div>`;
+
+  h += fieldRow(field('Employee/Contractor Name', candidateName()));
+  h += fieldRow(field('Health Care Provider/Employer Name', orgName()));
+  h += fieldRow(field('Address of Health Care Provider', orgAddress()));
+
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text small"><strong>By signing this form, the above-named employee/contractor attests to meeting the requirements for background screening pursuant to Chapter 435 and Section 408.809, Florida Statutes, and attests to not having been arrested for and not having been found guilty of, regardless of adjudication, or entered a plea of nolo contendere or guilty to, or having been adjudicated delinquent and the record has not been sealed or expunged for, any offense prohibited under the following provisions of law:</strong></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Criminal Offenses Listed Under Section 435.04, Florida Statutes</div>
+  <ol class="list-alpha offense-list-compact">
+    <li>Section 393.135, relating to sexual misconduct with certain developmentally disabled clients and reporting of such sexual misconduct.</li>
+    <li>Section 394.4593, relating to sexual misconduct with certain mental health patients and reporting of such sexual misconduct.</li>
+    <li>Section 415.111, relating to abuse, neglect, or exploitation of vulnerable adults.</li>
+    <li>Section 741.28, relating to domestic violence.</li>
+    <li>Section 777.04, relating to attempts, solicitation, and conspiracy to commit an offense listed in this subsection.</li>
+    <li>Section 782.04, relating to murder.</li>
+    <li>Section 782.07, relating to manslaughter, aggravated manslaughter of an elderly person or disabled adult, or aggravated manslaughter of a child.</li>
+    <li>Section 782.071, relating to vehicular homicide.</li>
+    <li>Section 782.09, relating to killing of an unborn child by injury to the mother.</li>
+    <li>Chapter 784, relating to assault, battery, and culpable negligence, if the offense was a felony.</li>
+    <li>Section 784.011, relating to assault, if the victim of the offense was a minor.</li>
+    <li>Section 784.03, relating to battery, if the victim of the offense was a minor.</li>
+    <li>Section 787.01, relating to kidnapping.</li>
+    <li>Section 787.02, relating to false imprisonment.</li>
+    <li>Section 787.025, relating to luring or enticing a child.</li>
+    <li>Section 787.04(2), relating to taking, enticing, or removing a child beyond the state limits with criminal intent pending custody proceedings.</li>
+    <li>Section 787.04(3), relating to carrying a child beyond the state limits with criminal intent to avoid producing a child at a custody hearing or delivering the child to the designated person.</li>
+    <li>Section 790.115(1), relating to exhibiting firearms or weapons within 1,000 feet of a school.</li>
+    <li>Section 790.115(2)(b), relating to possessing an electric weapon or device, destructive device, or other weapon on school property.</li>
+    <li>Section 794.011, relating to sexual battery.</li>
+    <li>Former Section 794.041, relating to prohibited acts of persons in familial or custodial authority.</li>
+    <li>Section 794.05, relating to unlawful sexual activity with certain minors.</li>
+    <li>Chapter 796, relating to prostitution.</li>
+    <li>Section 798.02, relating to lewd and lascivious behavior.</li>
+    <li>Chapter 800, relating to lewdness and indecent exposure.</li>
+    <li>Section 806.01, relating to arson.</li>
+    <li>Section 810.02, relating to burglary.</li>
+    <li>Section 810.14, relating to voyeurism.</li>
+    <li>Section 810.145, relating to video voyeurism.</li>
+    <li>Chapter 812, relating to theft, robbery, and related crimes, if the offense was a felony.</li>
+    <li>Section 817.563, relating to fraudulent sale of controlled substances, only if the offense was a felony.</li>
+    <li>Section 825.102, relating to abuse, aggravated abuse, or neglect of an elderly person or disabled adult.</li>
+    <li>Section 825.1025, relating to lewd or lascivious offenses committed upon or in the presence of an elderly person or disabled adult.</li>
+    <li>Section 825.103, relating to exploitation of an elderly person or disabled adult, if the offense was a felony.</li>
+    <li>Section 826.04, relating to incest.</li>
+    <li>Section 827.03, relating to child abuse, aggravated child abuse, or neglect of a child.</li>
+    <li>Section 827.04, relating to contributing to the delinquency or dependency of a child.</li>
+    <li>Former Section 827.05, relating to negligent treatment of children.</li>
+    <li>Section 827.071, relating to sexual performance by a child.</li>
+    <li>Section 843.01, relating to resisting arrest with violence.</li>
+    <li>Section 843.025, relating to depriving a law enforcement, correctional, or correctional probation officer means of protection or communication.</li>
+    <li>Section 843.12, relating to aiding in an escape.</li>
+    <li>Section 843.13, relating to aiding in the escape of juvenile inmates in correctional institutions.</li>
+    <li>Chapter 847, relating to obscene literature.</li>
+    <li>Section 874.05, relating to encouraging or recruiting another to join a criminal gang.</li>
+    <li>Chapter 893, relating to drug abuse prevention and control, only if the offense was a felony or if any other person involved in the offense was a minor.</li>
+    <li>Section 916.1075, relating to sexual misconduct with certain forensic clients and reporting of such misconduct.</li>
+  </ol></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Criminal Offenses Listed Under Section 408.809(4), Florida Statutes</div>
+  <ol class="list-alpha offense-list-compact">
+    <li>Section 409.920, relating to Medicaid provider fraud.</li>
+    <li>Section 409.9201, relating to Medicaid fraud.</li>
+    <li>Section 741.28, relating to domestic violence.</li>
+    <li>Section 817.034, relating to fraudulent acts through mail, wire, radio, electromagnetic, photoelectronic, or photooptical systems.</li>
+    <li>Section 817.234, relating to false and fraudulent insurance claims.</li>
+    <li>Section 817.505, relating to patient brokering.</li>
+    <li>Section 817.568, relating to criminal use of personal identification information.</li>
+    <li>Section 817.60, relating to obtaining a credit card through fraudulent means.</li>
+    <li>Section 817.61, relating to fraudulent use of credit cards.</li>
+    <li>Section 831.01, relating to forgery.</li>
+    <li>Section 831.02, relating to uttering forged instruments.</li>
+    <li>Section 831.07, relating to forging bank bills, checks, drafts, or promissory notes.</li>
+    <li>Section 831.09, relating to uttering forged bank bills, checks, drafts, or promissory notes.</li>
+    <li>Section 831.30, relating to fraud in obtaining medicinal drugs.</li>
+    <li>Section 831.31, relating to the sale, manufacture, delivery, or possession with the intent to sell, manufacture, or deliver any counterfeit controlled substance.</li>
+    <li>Section 895.03, relating to racketeering and collection of unlawful debts.</li>
+    <li>Section 896.101, relating to the Florida Money Laundering Act.</li>
+    <li>Section 943.0435, relating to sexual offenders required to register with the department.</li>
+    <li>Section 944.35, relating to inflicting cruel or inhuman treatment on an inmate resulting in great bodily harm.</li>
+    <li>Section 944.40, relating to escape.</li>
+    <li>Section 944.46, relating to harboring, concealing, or aiding an escaped prisoner.</li>
+    <li>Section 944.47, relating to introduction of contraband into a correctional facility.</li>
+  </ol></div>`;
+
+  h += `<div class="form-section no-break"><div class="section-title">Exemption from Disqualification</div>
+  <div class="legal-text small">Has the employee/contractor received an exemption from disqualification for any of the above offenses?</div>`;
+  h += `<div class="field-row">${checkbox('AHCA Exemption', false)} ${checkbox('DOH Exemption', false)}</div>`;
+  h += fieldRow(field('Date of Decision', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section no-break"><div class="section-title">Prior Screening</div>`;
+  h += fieldRow(field('Purpose of Prior Screening', ''));
+  h += `<div class="legal-text small">Screening conducted by:</div>`;
+  h += `<div class="field-row" style="flex-wrap:wrap;gap:8px;">
+    ${checkbox('AHCA', false)} ${checkbox('DOH', false)} ${checkbox('APD', false)}
+    ${checkbox('DCF', false)} ${checkbox('AHCA-Managed Care', false)} ${checkbox('DJJ', false)}
+  </div>`;
+  h += fieldRow(field('Date of Prior Screening', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section no-break"><div class="section-title">Attestation</div>
+  <div class="legal-text small"><strong>Under penalty of perjury, I, ${esc(candidateName()) || '___________________'}, hereby swear or affirm that I meet the requirements for qualifying for employment pursuant to Chapter 435 and Section 408.809, Florida Statutes, and that I have not been arrested for and have not been found guilty of, regardless of adjudication, or entered a plea of nolo contendere or guilty to, or have been adjudicated delinquent and the record has not been sealed or expunged for, any of the offenses listed above. I understand that I must inform my employer within one business day of any arrest or any other charge covered by Chapter 435 or Section 408.809, Florida Statutes.</strong></div></div>`;
+
+  h += sigBlock('Attestation of Compliance', 'Employee/Contractor Signature', 'Date');
+  h += fieldRow(field('Title', ''));
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="text-xs" style="color:var(--gray-light)">AHCA Form #3100-0008 &middot; Rule 59A-35.090, F.A.C.</div>`;
+
+  h += `${pageFooter('Attestation of Compliance')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   6. EMPLOYEE CODE OF CONDUCT
+---------------------------------------------------------------- */
+function docCodeOfConduct() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Employee Code of Conduct</div>`;
+
+  h += `<div class="legal-text">${esc(orgName())} is committed to providing a safe, supportive, and productive work environment for all employees, clients, and visitors. To ensure that this commitment is upheld, the following acts are considered unacceptable and may result in disciplinary action, up to and including termination of employment:</div>`;
+
+  h += `<ol class="numbered-list">
+    <li>Willful damage to or theft of property belonging to the company, coworkers, clients, or visitors.</li>
+    <li>Fighting, threatening, or engaging in acts of violence in the workplace.</li>
+    <li>Refusing to follow reasonable instructions from a supervisor or manager.</li>
+    <li>Possession, use, or being under the influence of alcohol or illegal substances while on duty or on company premises.</li>
+    <li>Providing false or misleading information on employment applications, time records, or other company documents.</li>
+    <li>Using threatening, intimidating, or abusive language toward coworkers, clients, or visitors.</li>
+    <li>Violation of no-smoking policies in designated areas.</li>
+    <li>Violation of health and safety rules and regulations.</li>
+    <li>Failure to comply with the company dress code and personal appearance standards.</li>
+    <li>Possession of firearms, weapons, or explosives on company premises or while conducting company business.</li>
+  </ol>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="legal-text">By signing below, I acknowledge that I have read, understand, and agree to comply with this Code of Conduct.</div>`;
+  h += sigBlock('Employee Code of Conduct', 'Employee Signature', 'Date');
+
+  h += `${pageFooter('Employee Code of Conduct')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   7. PERSONNEL POLICIES (2 pages)
+---------------------------------------------------------------- */
+function docPersonnelPolicies() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Personnel Policies</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Confidentiality Statement</div>
+  <div class="legal-text">All medical records and personal information pertaining to clients of ${esc(orgName())} are strictly confidential. No employee shall remove client records from the office or disclose any information contained therein to any unauthorized person. All employees are required to comply with the Health Insurance Portability and Accountability Act (HIPAA) and all applicable federal and state privacy regulations.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Picture Identification</div>
+  <div class="legal-text">I understand that I will carry my company-issued picture identification at all times while working and performing duties on behalf of ${esc(orgName())}.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Employee Declaration Form</div>
+  <div class="legal-text">I have received and read the company policies and procedures of ${esc(orgName())}. I understand and agree to abide by the policies and procedures set forth by the company. I also understand that I am required to provide a minimum of fourteen (14) days advance written notice prior to voluntary termination of my employment.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Employee Statement of Commitment</div>
+  <ul class="bullet-list">
+    <li>I will maintain a professional demeanor at all times while representing ${esc(orgName())}.</li>
+    <li>I will contact the agency immediately regarding any discrepancies or concerns about my assignment.</li>
+    <li>I will not accept gifts, gratuities, or personal favors from clients or their families.</li>
+    <li>I will notify the agency immediately if I am unable to serve a scheduled client.</li>
+    <li>I will not make or receive personal telephone calls at a client's home.</li>
+    <li>I will not transport clients in my personal vehicle.</li>
+    <li>I will not smoke at a client's home or in the presence of clients.</li>
+    <li>I will not send substitutes or allow anyone to accompany me while providing services to clients.</li>
+  </ul></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Equal Employment Opportunity</div>
+  <div class="legal-text">${esc(orgName())} does not discriminate on the basis of race, color, religion, sex, national origin, age, disability, genetic information, marital status, sexual orientation, or any other characteristic protected by applicable law, in accordance with Florida Statute 433.131(3)(a)(2). All new employees are subject to a ninety (90) day probationary period during which performance and suitability for the position will be evaluated.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Employee Handbook Receipt</div>
+  <div class="legal-text">I acknowledge that my employment with ${esc(orgName())} is at-will. This means that either I or the company may terminate the employment relationship at any time, with or without cause, and with or without notice.</div></div>`;
+
+  h += `${pageFooter('Personnel Policies — Page 1')}</section>`;
+
+  // Page 2
+  h += `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title-sm">Personnel Policies (continued)</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Pledge of Confidentiality — Protected Health Information</div>
+  <div class="legal-text">I understand that in the course of my employment with ${esc(orgName())}, I may have access to Protected Health Information (PHI) as defined by the Health Insurance Portability and Accountability Act (HIPAA). I pledge to maintain the confidentiality and security of all PHI and to access, use, or disclose such information only as necessary to perform my assigned duties. I understand that my obligations regarding the protection of PHI continue even after my employment ends. I further understand that unauthorized access, use, or disclosure of PHI may result in disciplinary action, up to and including termination, as well as civil and criminal penalties.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Drug and Alcohol Free Workplace</div>
+  <div class="legal-text">${esc(orgName())} maintains a drug and alcohol free workplace. The use, possession, distribution, or sale of alcohol, illegal drugs, or controlled substances on company premises, at company-sponsored events, or during work hours is strictly prohibited. Employees who violate this policy are subject to disciplinary action, up to and including immediate termination.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Voluntary Substance Testing</div>
+  <div class="legal-text">I hereby authorize ${esc(orgName())} to conduct blood and/or urine testing for the purpose of detecting the presence of alcohol, drugs, or controlled substances, as a condition of employment and/or continued employment.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Electronic Communications</div>
+  <div class="legal-text">All electronic equipment, systems, and communications tools provided by ${esc(orgName())} are company property and are intended for business use. The company reserves the right to inspect, monitor, and access all data, files, and communications stored on or transmitted through company equipment at any time, without prior notice.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Personal Hygiene</div>
+  <div class="legal-text">All employees are expected to maintain a professional appearance and adhere to standards of personal hygiene appropriate to their role and work environment. Specific dress code requirements may be established by department or position.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">In-Service Education / Staff Development</div>
+  <div class="legal-text">Employees may be required to participate in continuing education (CE) programs, in-service training, and staff development activities as determined by ${esc(orgName())}. This includes, but is not limited to, training on harassment prevention, workplace safety, and regulatory compliance.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Staff Safety</div>
+  <div class="legal-text">I acknowledge that I have received training on workplace safety procedures, emergency protocols, and the proper use of equipment and materials as applicable to my position.</div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Certification of Authenticity</div>
+  <div class="legal-text">I certify that all information provided in my application for employment and during the hiring process is true and correct to the best of my knowledge. I authorize ${esc(orgName())} to investigate all statements made in my application and to contact any references, previous employers, or educational institutions listed. I understand that any misrepresentation or omission of facts may result in rejection of my application or termination of my employment.</div></div>`;
+
+  h += `<div class="sig-block-area">`;
+  h += sigBlock('Personnel Policies', 'Employee/Contractor Signature', 'Date');
+  h += sigBlock('Personnel Policies', 'Designee Signature', 'Date');
+  h += `</div>`;
+
+  h += `${pageFooter('Personnel Policies — Page 2')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   8. EMPLOYEE ACKNOWLEDGMENT FORM
+---------------------------------------------------------------- */
+function docEmployeeAcknowledgment() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Employee Acknowledgment Form</div>`;
+
+  h += `<div class="legal-text">The Employee Handbook describes important information about ${esc(orgName())}, and I understand that I should consult my supervisor or Human Resources regarding any questions not answered in the handbook.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">I have entered into my employment relationship with ${esc(orgName())} voluntarily and acknowledge that there is no specified length of employment. I understand that my employment is at-will, meaning that either the company or I may terminate the employment relationship at any time, with or without cause, and with or without advance notice.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">I understand that the policies and benefits described in the handbook are subject to change at the sole discretion of ${esc(orgName())}. Changes will be communicated through official notices, and only the chief executive officer or designated representative has the authority to adopt revisions to the policies in the handbook.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text"><strong>I understand that this handbook is not a contract of employment, nor does it create any contractual obligation on the part of ${esc(orgName())}.</strong></div>`;
+
+  h += `<div class="spacer-lg"></div>`;
+  h += sigBlock('Employee Acknowledgment Form', "Employee's Signature", 'Date');
+  h += `<div class="spacer-sm"></div>`;
+  h += fieldRow(field("Employee's Name (Typed or Printed)", candidateName()));
+
+  h += `${pageFooter('Employee Acknowledgment Form')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   9. ABUSE AND NEGLECT STATEMENT
+---------------------------------------------------------------- */
+function docAbuseNeglect() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Abuse and Neglect Statement of Acknowledgment</div>`;
+
+  h += `<div class="legal-text">Elder abuse or neglect is defined as any willful act or threatened act by a caregiver that causes or is likely to cause significant impairment to the physical, mental, or emotional health of an elderly or vulnerable person. Abuse and neglect may take the following forms:</div>`;
+  h += `<div class="spacer-sm"></div>`;
+
+  h += `<div class="legal-text"><strong>Physical Abuse:</strong> Inflicting physical pain or injury upon an elderly or vulnerable person, including but not limited to hitting, slapping, kicking, pushing, burning, or improper use of physical restraints or medications.</div>`;
+  h += `<div class="legal-text"><strong>Emotional Abuse:</strong> Inflicting mental or emotional anguish upon an elderly or vulnerable person through threats, intimidation, humiliation, harassment, or isolation.</div>`;
+  h += `<div class="legal-text"><strong>Sexual Abuse:</strong> Non-consensual sexual contact of any kind with an elderly or vulnerable person.</div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="legal-text"><strong>Mandatory Reporting Requirement:</strong> All employees of ${esc(orgName())} are mandatory reporters. If you know or have reasonable cause to suspect that a client has been or is being abused, neglected, or exploited, you are required by law to report it immediately.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+
+  h += `<div class="legal-text"><strong>Florida Abuse Hotline:</strong> 1-800-96-ABUSE (1-800-962-2873)<br>
+  <strong>Fax:</strong> 1-800-914-0004<br>
+  <strong>Online Reporting:</strong> reportabuse.dcf.state.fl.us</div>`;
+
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">Pursuant to Section 39.203(1)(a), Florida Statutes, any person who reports in good faith any known or suspected case of abuse, neglect, or exploitation is immune from any civil or criminal liability.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">Pursuant to Section 39, Florida Statutes, mandatory reporters who fail to report known or suspected abuse, neglect, or exploitation are subject to penalties. Pursuant to Sections 402.301-319, Florida Statutes, any person who knowingly and willfully makes a false report of abuse, neglect, or exploitation commits a felony of the third degree.</div>`;
+
+  h += `<div class="sig-block-area">`;
+  h += fieldRow(field('Print Name', candidateName()));
+  h += sigBlock('Abuse and Neglect Statement', 'Employee Signature', 'Date');
+  h += fieldRow(field('Administrative (Printed)', ''));
+  h += sigBlock('Abuse and Neglect Statement', 'Administrative Signature', 'Date');
+  h += `</div>`;
+
+  h += `${pageFooter('Abuse and Neglect Statement')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   10. CONFIDENTIAL NATURE OF CORPORATION AFFAIRS AGREEMENT
+---------------------------------------------------------------- */
+function docConfidentialAffairs() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Confidential Nature of Corporation Affairs Agreement</div>`;
+
+  h += `<div class="legal-text">It is the policy of ${esc(orgName())} that all information regarding the internal business affairs of the corporation is confidential and shall not be discussed with or disclosed to persons outside the organization, except as required in the normal course of business or as required by law.</div>`;
+  h += `<div class="spacer-md"></div>`;
+
+  h += `<ol class="numbered-list">
+    <li>All inquiries from the media or press regarding the affairs of ${esc(orgName())} shall be referred to the designated administrative representative. No employee shall provide statements, comments, or information to the media without prior authorization.</li>
+    <li>All inquiries regarding current or former employees shall be referred to the Human Resources department or designated representative. No employee shall provide employment references or personnel information without proper authorization.</li>
+    <li>Employees shall avoid unnecessary disclosure of internal business information, including but not limited to financial data, client information, operational procedures, and proprietary business practices, to any person who does not have a legitimate business need for such information.</li>
+  </ol>`;
+
+  h += `<div class="sig-block-area">`;
+  h += sigBlock('Confidential Nature of Corporation Affairs', 'Signature of Employee', 'Date');
+  h += sigBlock('Confidential Nature of Corporation Affairs', 'Administrative Signature', 'Date');
+  h += `</div>`;
+
+  h += `${pageFooter('Confidential Affairs Agreement')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   11. PRIVACY POLICY ACKNOWLEDGMENT FORM
+---------------------------------------------------------------- */
+function docPrivacyPolicy() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Privacy Policy Acknowledgment Form</div>`;
+
+  h += `<div class="legal-text">I acknowledge that I have received and reviewed the Florida Department of Law Enforcement (FDLE) and Federal Bureau of Investigation (FBI) privacy policies as they pertain to the handling of criminal history record information and personal identification data.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">I agree to read and comply with the privacy policy guidelines set forth by FDLE and FBI, and I understand that any violation of these policies may result in disciplinary action, up to and including termination, as well as potential criminal penalties.</div>`;
+
+  h += `<div class="spacer-lg"></div>`;
+  h += fieldRow(field('Employee/Contractor Name (Printed)', candidateName()));
+  h += sigBlock('Privacy Policy Acknowledgment', 'Employee/Contractor Signature', 'Date');
+
+  h += `${pageFooter('Privacy Policy Acknowledgment')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   12. EMPLOYEE HIPAA COMPLIANCE SIGNATURE FORM
+---------------------------------------------------------------- */
+function docHipaaCompliance() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Employee HIPAA Compliance Signature Form</div>`;
+
+  h += `<div class="legal-text">I, <strong>${esc(candidateName()) || '___________________'}</strong>, want to reassure my commitment to company compliance:</div>`;
+  h += `<div class="spacer-sm"></div>`;
+
+  h += `<ol class="numbered-list">
+    <li>I have read and understand the HIPAA policies and procedures manual provided by ${esc(orgName())}.</li>
+    <li>I will maintain up-to-date knowledge of HIPAA regulations and any changes to company privacy and security policies.</li>
+    <li>I will comply with all HIPAA requirements and immediately report any known or suspected instances of non-compliance, security breaches, or unauthorized access to Protected Health Information (PHI) to my supervisor or the designated Privacy/Compliance Officer.</li>
+  </ol>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="legal-text">${esc(orgName())} is committed to the protection of all Protected Health Information (PHI) in accordance with the Health Insurance Portability and Accountability Act (HIPAA) of 1996 and the Health Information Technology for Economic and Clinical Health (HITECH) Act.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">The organization maintains comprehensive administrative, physical, and technical safeguards to ensure the confidentiality, integrity, and availability of all PHI. All employees are responsible for understanding and adhering to these safeguards as they apply to their specific roles and responsibilities.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">The organization supports an open-door policy regarding HIPAA compliance. Employees are encouraged to ask questions, report concerns, and seek guidance from the Privacy/Compliance Officer at any time without fear of retaliation.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">By signing below, I acknowledge that I understand and agree to comply with all HIPAA-related policies and procedures of ${esc(orgName())}.</div>`;
+
+  h += `<div class="sig-block-area">`;
+  h += sigBlock('HIPAA Compliance', 'Signature of Employee', 'Date');
+  h += sigBlock('HIPAA Compliance', 'Signature of Compliance Officer', 'Date');
+  h += `</div>`;
+
+  h += `${pageFooter('HIPAA Compliance Form')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   13. DRUG-FREE WORKPLACE ACKNOWLEDGMENT (NEW)
+---------------------------------------------------------------- */
+function docDrugFreeWorkplace() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Drug-Free Workplace Acknowledgment</div>`;
+  h += `<div class="doc-subtitle">Pursuant to Florida Statute &sect;440.102</div>`;
+
+  h += `<div class="legal-text">${esc(orgName())} is committed to maintaining a drug-free and alcohol-free workplace. In accordance with Florida Statute &sect;440.102, the following policy applies to all employees, contractors, and individuals performing services on behalf of the organization:</div>`;
+  h += `<div class="spacer-sm"></div>`;
+
+  h += `<ol class="numbered-list">
+    <li>The organization prohibits the use, possession, transfer, and sale of alcohol and illegal drugs while working or on company premises.</li>
+    <li>This policy applies at all times during working hours, including all official and unofficial break periods.</li>
+    <li>Employees are prohibited from reporting to work or performing duties while under the influence of alcohol, illegal drugs, or any substance that impairs the ability to perform job duties safely and effectively.</li>
+    <li>Violations of this policy may result in disciplinary action, up to and including termination of employment.</li>
+    <li>The organization reserves the right to conduct drug and alcohol testing as permitted by Florida law, including pre-employment, reasonable suspicion, post-accident, and random testing.</li>
+  </ol>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="form-section"><div class="section-title">Voluntary Substance Testing Consent</div>
+  <div class="legal-text">I hereby consent to submit to drug and/or alcohol testing as a condition of employment and/or continued employment with ${esc(orgName())}. I understand that refusal to submit to testing may result in disciplinary action, up to and including termination.</div></div>`;
+
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text"><strong>By signing below, I acknowledge that I have read, understand, and agree to comply with this Drug-Free Workplace Policy.</strong></div>`;
+
+  h += `<div class="spacer-lg"></div>`;
+  h += sigBlock('Drug-Free Workplace Acknowledgment', 'Employee Signature', 'Date');
+
+  h += `${pageFooter('Drug-Free Workplace Acknowledgment')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   14. TUBERCULOSIS (TB) SCREENING DECLARATION (NEW)
+---------------------------------------------------------------- */
+function docTBScreening() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Tuberculosis (TB) Screening Declaration</div>`;
+  h += `<div class="doc-subtitle">CDC / OSHA Guidelines</div>`;
+
+  h += `<div class="legal-text">I, <strong>${esc(candidateName()) || '___________________'}</strong>, acknowledge that I am required to complete tuberculosis screening as a condition of employment with ${esc(orgName())}. I understand that I must provide evidence of one of the following within ten (10) business days of my start date:</div>`;
+  h += `<div class="spacer-sm"></div>`;
+
+  h += `<ul class="bullet-list">
+    <li>TB blood test (Interferon-Gamma Release Assay / IGRA)</li>
+    <li>TB skin test (Tuberculin Skin Test / TST / PPD)</li>
+    <li>Chest X-ray (if prior positive result)</li>
+  </ul>`;
+
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">A positive result does not automatically disqualify an individual from employment. A positive result requires physician clearance and may require additional documentation.</div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="form-section"><div class="section-title">Screening Information</div>`;
+  h += `<div class="legal-text small">Type of test completed:</div>`;
+  h += `<div class="field-row" style="gap:16px;">
+    ${checkbox('TB Blood Test (IGRA)', false)}
+    ${checkbox('TB Skin Test (TST/PPD)', false)}
+    ${checkbox('Chest X-Ray', false)}
+  </div>`;
+  h += fieldRow(field('Date of Test', ''));
+  h += `<div class="legal-text small">Result:</div>`;
+  h += `<div class="field-row" style="gap:16px;">
+    ${checkbox('Negative', false)}
+    ${checkbox('Positive', false)}
+  </div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text small">If positive:</div>`;
+  h += fieldRow(field('Date of Chest X-Ray', ''));
+  h += `<div class="field-row" style="gap:16px;">
+    ${checkbox('Physician Clearance Attached — Yes', false)}
+    ${checkbox('Physician Clearance Attached — No', false)}
+  </div>`;
+  h += `</div>`;
+
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">I authorize the release of my TB screening results to ${esc(orgName())} for employment verification purposes.</div>`;
+
+  h += `<div class="spacer-lg"></div>`;
+  h += sigBlock('TB Screening Declaration', 'Employee Signature', 'Date');
+
+  h += `${pageFooter('TB Screening Declaration')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   15. HEPATITIS B VACCINATION DECLARATION (NEW)
+---------------------------------------------------------------- */
+function docHepBVaccination() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Hepatitis B Vaccination Declaration</div>`;
+  h += `<div class="doc-subtitle">OSHA 29 CFR &sect;1910.1030</div>`;
+
+  h += `<div class="legal-text">In accordance with the Occupational Safety and Health Administration (OSHA) Bloodborne Pathogens Standard (29 CFR &sect;1910.1030), ${esc(orgName())} is required to offer the Hepatitis B vaccination series at no cost to employees who may have occupational exposure to blood or other potentially infectious materials.</div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="form-section"><div class="section-title">Acceptance of Hepatitis B Vaccination</div>`;
+  h += `<div class="field-row">${checkbox('I have received or will receive the Hepatitis B vaccination series. I understand that the vaccination will be provided at no cost to me.', false)}</div>`;
+  h += `</div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="form-section"><div class="section-title">Declination of Hepatitis B Vaccination</div>`;
+  h += `<div class="legal-text">I understand that due to my occupational exposure to blood or other potentially infectious materials, I may be at risk of acquiring Hepatitis B virus (HBV) infection. I have been given the opportunity to be vaccinated with Hepatitis B vaccine, at no charge to me. However, I decline the Hepatitis B vaccination at this time. I understand that by declining this vaccine, I continue to be at risk of acquiring Hepatitis B, a serious disease. If in the future I continue to have occupational exposure to blood or other potentially infectious materials and I want to be vaccinated with Hepatitis B vaccine, I can receive the vaccination series at no charge to me.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="field-row">${checkbox('I decline the Hepatitis B vaccination at this time.', false)}</div>`;
+  h += `</div>`;
+
+  h += `<div class="spacer-lg"></div>`;
+  h += sigBlock('Hepatitis B Vaccination Declaration', 'Employee Signature', 'Date');
+
+  h += `${pageFooter('Hepatitis B Vaccination Declaration')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   16. BLOODBORNE PATHOGEN / INFECTION CONTROL TRAINING (NEW)
+---------------------------------------------------------------- */
+function docBloodbornePathogen() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Bloodborne Pathogen / Infection Control Training Acknowledgment</div>`;
+  h += `<div class="doc-subtitle">OSHA 29 CFR &sect;1910.1030 &middot; Joint Commission IC Standards</div>`;
+
+  h += `<div class="legal-text">I, <strong>${esc(candidateName()) || '___________________'}</strong>, acknowledge that I have received training on the following topics related to bloodborne pathogens and infection control as required by OSHA and applicable Joint Commission standards:</div>`;
+  h += `<div class="spacer-sm"></div>`;
+
+  h += `<ul class="bullet-list">
+    <li>Universal / Standard Precautions for infection prevention</li>
+    <li>Proper hand hygiene techniques and protocols</li>
+    <li>Appropriate selection and use of Personal Protective Equipment (PPE)</li>
+    <li>Exposure incident procedures and post-exposure evaluation</li>
+    <li>Sharps safety and safe handling of needles and other sharp instruments</li>
+    <li>Biohazard waste segregation, handling, and disposal procedures</li>
+  </ul>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="legal-text">I understand the procedures for reporting exposure incidents to my supervisor and the designated safety officer. I understand that I am to report any exposure incident immediately, regardless of the severity of the exposure.</div>`;
+
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text"><strong>By signing below, I confirm that I have received and understood the training described above and agree to follow all infection control procedures and protocols.</strong></div>`;
+
+  h += `<div class="sig-block-area">`;
+  h += sigBlock('Bloodborne Pathogen Training', 'Employee Signature', 'Date');
+  h += sigBlock('Bloodborne Pathogen Training', 'Trainer/Supervisor Signature', 'Date');
+  h += `</div>`;
+
+  h += `${pageFooter('Bloodborne Pathogen Training Acknowledgment')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   17. CPR/BLS CERTIFICATION ACKNOWLEDGMENT (NEW)
+---------------------------------------------------------------- */
+function docCPRBLS() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">CPR/BLS Certification Acknowledgment</div>`;
+  h += `<div class="doc-subtitle">Facility Policy &middot; Joint Commission</div>`;
+
+  h += `<div class="legal-text">I, <strong>${esc(candidateName()) || '___________________'}</strong>, acknowledge that current CPR/BLS (Cardiopulmonary Resuscitation / Basic Life Support) certification is required for my position with ${esc(orgName())}.</div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="form-section"><div class="section-title">Current Certification Information</div>`;
+  h += `<div class="legal-text small">Certification Provider:</div>`;
+  h += `<div class="field-row" style="gap:16px;">
+    ${checkbox('American Heart Association (AHA)', false)}
+    ${checkbox('American Red Cross', false)}
+    ${checkbox('Other', false)}
+  </div>`;
+  h += fieldRow(field('If Other, specify provider', ''));
+  h += fieldRow(field('Certification Number', ''), field('Expiration Date', ''));
+  h += `</div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="legal-text">I agree to maintain current CPR/BLS certification throughout my employment and to provide updated documentation to ${esc(orgName())} prior to the expiration of my current certification. I understand that failure to maintain current certification may affect my ability to perform my duties and may result in administrative action.</div>`;
+
+  h += `<div class="spacer-lg"></div>`;
+  h += sigBlock('CPR/BLS Certification Acknowledgment', 'Employee Signature', 'Date');
+
+  h += `${pageFooter('CPR/BLS Certification Acknowledgment')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   18. SUPERVISION AGREEMENT (intern only) (NEW)
+---------------------------------------------------------------- */
+function docSupervisionAgreement() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Supervision Agreement</div>`;
+  h += `<div class="doc-subtitle">Florida Statute &sect;491.0045 &middot; Florida Board of Clinical Social Work, Marriage &amp; Family Therapy, and Mental Health Counseling</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Registered Intern Information</div>`;
+  h += fieldRow(field('Intern Name', candidateName()));
+  h += fieldRow(field('Registration Number', ''), field('Registration Type', ''));
+  h += `<div class="legal-text small">Registration type:</div>`;
+  h += `<div class="field-row" style="gap:16px;">
+    ${checkbox('Registered Mental Health Counselor Intern (RMHCI)', false)}
+    ${checkbox('Registered Clinical Social Worker Intern (RCSWI)', false)}
+    ${checkbox('Registered Marriage and Family Therapist Intern (RMFTI)', false)}
+  </div>`;
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Qualified Supervisor Information</div>`;
+  h += fieldRow(field('Supervisor Name', ''), field('License Number', ''));
+  h += fieldRow(field('License Type', ''), field('License Expiration Date', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Supervision Plan</div>`;
+  h += `<div class="legal-text small">Frequency of supervision (minimum 1 hour per 2 weeks):</div>`;
+  h += fieldRow(field('Frequency', ''), field('Duration per Session', ''));
+  h += `<div class="legal-text small">Format:</div>`;
+  h += `<div class="field-row" style="gap:16px;">
+    ${checkbox('Individual', false)}
+    ${checkbox('Group', false)}
+    ${checkbox('Both', false)}
+  </div>`;
+  h += fieldRow(field('Location of Supervision', ''));
+  h += fieldRow(field('Start Date of Agreement', ''), field('Anticipated End Date', ''));
+  h += `</div>`;
+
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">Both parties acknowledge their responsibilities under Florida Chapter 491 and the rules of the Florida Board of Clinical Social Work, Marriage and Family Therapy, and Mental Health Counseling. The supervisor agrees to provide clinical supervision in accordance with the requirements of the intern's registration type. The intern agrees to adhere to all ethical standards and practice within the scope of their registration.</div>`;
+
+  h += `<div class="sig-block-area">`;
+  h += sigBlock('Supervision Agreement', 'Registered Intern Signature', 'Date');
+  h += sigBlock('Supervision Agreement', 'Qualified Supervisor Signature', 'Date');
+  h += `</div>`;
+
+  h += `${pageFooter('Supervision Agreement')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   19. INDEPENDENT CONTRACTOR INFORMATION (conditional)
+---------------------------------------------------------------- */
+function docContractorInfo() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Independent Contractor Information</div>`;
+
+  h += `<div class="legal-text">To further clarify your independent contractor status, for the Internal Revenue Service (IRS), please read the following, sign below, and return this document.</div>`;
+  h += `<div class="spacer-md"></div>`;
+
+  h += `<ul class="bullet-list">
+    <li>I set my own schedule and determine the hours I will work.</li>
+    <li>I am not essential to the day-to-day running of the firm.</li>
+    <li>I furnish my own tools, equipment, and supplies necessary to perform the contracted services.</li>
+    <li>I am free to offer my services to other businesses and clients simultaneously.</li>
+    <li>I am responsible for my own profit or loss as a result of the services I provide.</li>
+    <li>I am not covered by the company's workers' compensation insurance.</li>
+    <li>I am responsible for paying my own self-employment taxes, including Social Security and Medicare.</li>
+    <li>I am not entitled to employee benefits, including but not limited to health insurance, paid time off, or retirement plans.</li>
+    <li>I may hire assistants or subcontract work at my own expense and discretion.</li>
+    <li>I have the right to perform services in the manner and method I determine to be most effective, subject to the terms of the contract.</li>
+    <li>I am not required to attend company meetings or training sessions unless specifically related to the contracted work.</li>
+    <li>The company does not provide me with ongoing instructions regarding when, where, and how to perform my work.</li>
+    <li>I am not required to submit regular written or oral reports regarding the status of my work, beyond the terms of the contract.</li>
+    <li>My relationship with the company is governed by the terms of a written contract or agreement.</li>
+    <li>Either party may terminate the relationship in accordance with the terms of the contract.</li>
+    <li>I am not required to perform services exclusively for this company.</li>
+    <li>I maintain my own professional liability and general liability insurance coverage.</li>
+    <li>I understand that I will receive an IRS Form 1099 for compensation paid, rather than a W-2.</li>
+  </ul>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="legal-text"><strong>The above confirms our understanding of the independent contractor relationship.</strong></div>`;
+
+  h += `<div class="sig-block-area">`;
+  h += sigBlock('Independent Contractor Information', 'Administrative Signature', 'Date');
+  h += sigBlock('Independent Contractor Information', 'Independent Contractor Signature', 'Date');
+  h += `</div>`;
+
+  h += `${pageFooter('Independent Contractor Information')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   20. OFFER OF EMPLOYMENT LETTER
+---------------------------------------------------------------- */
+function docOfferLetter() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Offer of Employment</div>`;
+
+  h += `<div class="legal-text" style="text-align:left;">${todayFormatted()}</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text" style="text-align:left;">${esc(candidateName())}</div>`;
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="legal-text">Dear ${esc(candidateName()) || '___________________'},</div>`;
+  h += `<div class="spacer-sm"></div>`;
+
+  h += `<div class="legal-text">We are pleased to extend this offer of employment for the position of <strong>${esc(position()) || '___________________'}</strong> with ${esc(orgName())}. The details of this offer are as follows:</div>`;
+  h += `<div class="spacer-sm"></div>`;
+
+  h += fieldRow(field('Position', position()), field('Start Date', ''));
+  h += fieldRow(field('Compensation', ''), field('Pay Frequency', ''));
+  h += fieldRow(field('Schedule', ''), field('Employment Type', PKG.role_type || ''));
+  h += fieldRow(field('Supervisor', PKG.assigned_to || ''));
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="legal-text">This employment is at-will, meaning that either party may end the employment relationship at any time, for any reason, with or without cause or advance notice.</div>`;
+
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text"><strong>This offer is contingent upon satisfactory completion of the following:</strong></div>`;
+  h += `<ul class="bullet-list">
+    <li>Background screening in accordance with Chapter 435 and Section 408.809, Florida Statutes</li>
+    <li>Verification of professional licenses and certifications</li>
+    <li>Drug screening</li>
+    <li>Completion of Form I-9 and employment eligibility verification</li>
+  </ul>`;
+
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text">Please indicate your acceptance of this offer by signing below and returning this letter by the date indicated.</div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="legal-text">Sincerely,</div>`;
+  h += `<div class="sig-block-area">`;
+  h += sigBlock('Offer of Employment', 'Medical Director / HR Representative', 'Date');
+  h += `</div>`;
+
+  h += `<div class="sig-block-area">`;
+  h += `<div class="section-title">Acceptance</div>`;
+  h += `<div class="legal-text">I accept the offer of employment as described above and agree to the terms and conditions set forth in this letter.</div>`;
+  h += sigBlock('Offer of Employment', 'Employee Signature', 'Date');
+  h += `</div>`;
+
+  h += `${pageFooter('Offer of Employment')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   21. ACCEPTANCE OF EMPLOYMENT
+---------------------------------------------------------------- */
+function docAcceptance() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Acceptance of Employment</div>`;
+
+  h += `<div class="legal-text">I, <strong>${esc(candidateName()) || '___________________'}</strong>, hereby accept the position of <strong>${esc(position()) || '___________________'}</strong> with <strong>${esc(orgName())}</strong>, effective as of the start date specified in the Offer of Employment letter.</div>`;
+  h += `<div class="spacer-md"></div>`;
+
+  h += `<div class="legal-text">By signing below, I acknowledge the following:</div>`;
+  h += `<ul class="bullet-list">
+    <li>My employment is at-will, and either party may terminate the relationship at any time, with or without cause or advance notice.</li>
+    <li>I have reviewed the Employee Handbook and understand the policies, procedures, and expectations described therein.</li>
+    <li>I understand and agree to the compensation, schedule, and other conditions outlined in the Offer of Employment.</li>
+    <li>I understand that this offer is contingent upon satisfactory completion of all required pre-employment screenings and verifications.</li>
+  </ul>`;
+
+  h += `<div class="spacer-lg"></div>`;
+  h += sigBlock('Acceptance of Employment', 'Employee Signature', 'Date');
+
+  h += `${pageFooter('Acceptance of Employment')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   22. W-4 SUBSTITUTE / TAX WITHHOLDING DECLARATION
+---------------------------------------------------------------- */
+function docW4Substitute() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">W-4 Substitute / Tax Withholding Declaration</div>`;
+
+  h += `<div class="legal-text" style="background:var(--green-light);padding:10px;border-radius:4px;"><strong>Note:</strong> Please complete IRS Form W-4 separately. This form acknowledges your obligation to provide federal and state tax withholding information to ${esc(orgName())}.</div>`;
+  h += `<div class="spacer-md"></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Filing Status</div>`;
+  h += `<div class="field-row" style="gap:20px;">
+    ${checkbox('Single', false)}
+    ${checkbox('Married Filing Jointly', false)}
+    ${checkbox('Head of Household', false)}
+  </div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Withholding</div>`;
+  h += fieldRow(field('Additional Amount to Withhold (per pay period)', ''));
+  h += `<div class="field-row">${checkbox('I claim exemption from withholding for the current tax year', false)}</div>`;
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Employee Information</div>`;
+  h += fieldRow(field('Full Name', candidateName()), field('Social Security Number', ''));
+  h += fieldRow(field('Address', ''));
+  h += fieldRow(field('City', ''), fieldFixed('State', '', '100px'), fieldFixed('Zip Code', '', '100px'));
+  h += `</div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += sigBlock('W-4 Substitute', 'Employee Signature', 'Date');
+
+  h += `${pageFooter('W-4 Tax Withholding Declaration')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   23. W-9 SUBSTITUTE / TAXPAYER IDENTIFICATION REQUEST
+---------------------------------------------------------------- */
+function docW9Substitute() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">W-9 Substitute / Taxpayer Identification Request</div>`;
+
+  h += `<div class="legal-text" style="background:var(--green-light);padding:10px;border-radius:4px;"><strong>Note:</strong> Please complete IRS Form W-9 separately. This form acknowledges your obligation to provide taxpayer identification information to ${esc(orgName())}.</div>`;
+  h += `<div class="spacer-md"></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Business Information</div>`;
+  h += fieldRow(field('Name (as shown on your income tax return)', candidateName()));
+  h += fieldRow(field('Business Name / Disregarded Entity Name (if different)', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Tax Classification</div>`;
+  h += `<div class="field-row" style="flex-wrap:wrap;gap:12px;">
+    ${checkbox('Individual / Sole Proprietor', false)}
+    ${checkbox('Single-Member LLC', false)}
+    ${checkbox('C Corporation', false)}
+    ${checkbox('S Corporation', false)}
+    ${checkbox('Partnership', false)}
+    ${checkbox('Trust / Estate', false)}
+    ${checkbox('Other', false)}
+  </div></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Taxpayer Identification Number (TIN)</div>`;
+  h += `<div class="field-row" style="gap:20px;">
+    ${checkbox('Social Security Number (SSN)', false)}
+    ${checkbox('Employer Identification Number (EIN)', false)}
+  </div>`;
+  h += fieldRow(field('TIN', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Certification</div>
+  <div class="legal-text">Under penalties of perjury, I certify that: (1) the number shown on this form is my correct taxpayer identification number, (2) I am not subject to backup withholding because I have not been notified by the Internal Revenue Service that I am subject to backup withholding as a result of failure to report all interest or dividends, or the IRS has notified me that I am no longer subject to backup withholding, and (3) I am a U.S. citizen or other U.S. person as defined by the IRS.</div></div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += sigBlock('W-9 Substitute', 'Contractor Signature', 'Date');
+
+  h += `${pageFooter('W-9 Taxpayer Identification')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   24. I-9 EMPLOYMENT ELIGIBILITY ACKNOWLEDGMENT
+---------------------------------------------------------------- */
+function docI9Acknowledgment() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">I-9 Employment Eligibility Acknowledgment</div>`;
+
+  h += `<div class="legal-text" style="background:var(--green-light);padding:10px;border-radius:4px;"><strong>Note:</strong> Please complete USCIS Form I-9 (Employment Eligibility Verification) separately. This form acknowledges your obligation to provide documentation of your identity and work authorization to ${esc(orgName())}.</div>`;
+  h += `<div class="spacer-md"></div>`;
+
+  h += `<div class="legal-text">In accordance with federal law, all employers are required to verify the identity and employment authorization of every individual hired for employment in the United States. ${esc(orgName())} participates in the E-Verify program as required by Florida Senate Bill 1718.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+
+  h += `<div class="legal-text"><strong>By signing below, I acknowledge the following:</strong></div>`;
+  h += `<ul class="bullet-list">
+    <li>I understand that I am required to complete Section 1 of USCIS Form I-9 on or before my first day of employment.</li>
+    <li>I understand that I must present acceptable original documents establishing my identity and employment authorization within three (3) business days of my date of hire.</li>
+    <li>I understand that ${esc(orgName())} participates in the E-Verify program and that my employment eligibility will be confirmed through the E-Verify system.</li>
+    <li>I understand that failure to provide the required documentation within the specified timeframe may result in termination of my employment.</li>
+    <li>I understand that knowingly providing false documents or information is a violation of federal law.</li>
+  </ul>`;
+
+  h += `<div class="spacer-lg"></div>`;
+  h += sigBlock('I-9 Acknowledgment', 'Employee Signature', 'Date');
+
+  h += `${pageFooter('I-9 Employment Eligibility')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   25. DIRECT DEPOSIT AUTHORIZATION
+---------------------------------------------------------------- */
+function docDirectDeposit() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Direct Deposit Authorization</div>`;
+
+  h += `<div class="legal-text">I hereby authorize ${esc(orgName())} to initiate electronic deposits to and, if necessary, withdrawals from the bank account(s) listed below for the purpose of payroll direct deposit.</div>`;
+  h += `<div class="spacer-md"></div>`;
+
+  h += `<div class="form-section"><div class="section-title">Primary Account</div>`;
+  h += fieldRow(field('Bank Name', ''));
+  h += `<div class="field-row" style="gap:16px;">
+    ${checkbox('Checking', false)}
+    ${checkbox('Savings', false)}
+  </div>`;
+  h += fieldRow(field('Routing Number', ''), field('Account Number', ''));
+  h += `</div>`;
+
+  h += `<div class="form-section"><div class="section-title">Secondary Account (Optional)</div>`;
+  h += fieldRow(field('Bank Name', ''));
+  h += `<div class="field-row" style="gap:16px;">
+    ${checkbox('Checking', false)}
+    ${checkbox('Savings', false)}
+  </div>`;
+  h += fieldRow(field('Routing Number', ''), field('Account Number', ''));
+  h += fieldRow(field('Amount or Percentage to Deposit', ''));
+  h += `</div>`;
+
+  h += `<div class="spacer-md"></div>`;
+  h += `<div class="legal-text">I authorize ${esc(orgName())} to deposit my pay into the account(s) listed above. This authorization shall remain in effect until I provide written notice of its termination. I understand that it may take one to two pay periods for the direct deposit to become active.</div>`;
+  h += `<div class="spacer-sm"></div>`;
+  h += `<div class="legal-text" style="background:var(--green-light);padding:10px;border-radius:4px;"><strong>Please attach a voided check or bank verification letter for each account listed above.</strong></div>`;
+
+  h += `<div class="spacer-lg"></div>`;
+  h += sigBlock('Direct Deposit Authorization', 'Employee Signature', 'Date');
+
+  h += `${pageFooter('Direct Deposit Authorization')}</section>`;
+  return h;
+}
+
+/* ----------------------------------------------------------------
+   26. PHASE COMPLETION SIGN-OFF
+---------------------------------------------------------------- */
+function docPhaseSignOff() {
+  let h = `<section class="doc-section">${pageHeader()}`;
+  h += `<div class="doc-title">Phase Completion Sign-Off</div>`;
+
+  h += `<div class="legal-text">This form certifies that all required documents and tasks for the hiring process of <strong>${esc(candidateName())}</strong> for the position of <strong>${esc(position())}</strong> have been completed, collected, and verified.</div>`;
+  h += `<div class="spacer-md"></div>`;
+
+  const phases = PKG.phases || {};
+  const phaseNums = Object.keys(phases).sort();
+
+  if (phaseNums.length > 0) {
+    for (const pNum of phaseNums) {
+      h += `<div class="form-section no-break"><div class="section-title">Phase ${pNum}</div>`;
+      h += `<div class="field-row">${checkbox('All items completed', false)}</div>`;
+      h += `<div class="field-row">${checkbox('All documents collected and filed', false)}</div>`;
+      h += `<div class="field-row">${checkbox('Waived items documented with justification', false)}</div>`;
+      h += sigBlock('Phase ' + pNum + ' Sign-Off', 'HR Signature — Phase ' + pNum, 'Date');
+      h += `</div>`;
+    }
+  } else {
+    for (let p = 1; p <= 3; p++) {
+      h += `<div class="form-section no-break"><div class="section-title">Phase ${p}</div>`;
+      h += `<div class="field-row">${checkbox('All items completed', false)}</div>`;
+      h += `<div class="field-row">${checkbox('All documents collected and filed', false)}</div>`;
+      h += `<div class="field-row">${checkbox('Waived items documented with justification', false)}</div>`;
+      h += sigBlock('Phase ' + p + ' Sign-Off', 'HR Signature — Phase ' + p, 'Date');
+      h += `</div>`;
+    }
+  }
+
+  h += `<div class="sig-block-area">`;
+  h += `<div class="section-title">Final Approval</div>`;
+  h += `<div class="legal-text">By signing below, we certify that all hiring requirements have been satisfactorily completed for this candidate.</div>`;
+  h += sigBlock('Phase Completion Final', 'Employee Signature', 'Date');
+  h += sigBlock('Phase Completion Final', 'Human Resources Signature', 'Date');
+  h += sigBlock('Phase Completion Final', 'Supervisor Signature', 'Date');
+  h += sigBlock('Phase Completion Final', 'Medical Director Signature', 'Date');
+  h += `</div>`;
+
+  h += `${pageFooter('Phase Completion Sign-Off')}</section>`;
+  return h;
+}
+
+/* ================================================================
+   ROLE HELPERS
+================================================================ */
+function isContractedRole() {
+  const rt = (PKG.role_type || '').toLowerCase();
+  const pos = (PKG.position || '').toLowerCase();
+  return rt.includes('contract') || rt.includes('subcontract') || pos.includes('contractor') || rt === '1099';
+}
+
+function isInternRole() {
+  const rt = (PKG.role_type || '').toLowerCase();
+  const pos = (PKG.position || '').toLowerCase();
+  return rt === 'intern' || rt.includes('intern') || pos.includes('intern');
+}
+
+/* ================================================================
+   MAIN RENDER
+================================================================ */
+function render() {
+  let html = '';
+
+  // 1. Cover Page
+  html += docCoverPage();
+
+  // 2. Employment Application (2 pages)
+  html += docEmploymentApplication();
+
+  // 3. Emergency Contact Information
+  html += docEmergencyContact();
+
+  // 4. Reference Form
+  html += docReferenceForm();
+
+  // 5. Attestation of Compliance
+  html += docAttestationCompliance();
+
+  // 6. Employee Code of Conduct
+  html += docCodeOfConduct();
+
+  // 7. Personnel Policies (2 pages)
+  html += docPersonnelPolicies();
+
+  // 8. Employee Acknowledgment Form
+  html += docEmployeeAcknowledgment();
+
+  // 9. Abuse and Neglect Statement
+  html += docAbuseNeglect();
+
+  // 10. Confidential Affairs Agreement
+  html += docConfidentialAffairs();
+
+  // 11. Privacy Policy Acknowledgment
+  html += docPrivacyPolicy();
+
+  // 12. HIPAA Compliance Form
+  html += docHipaaCompliance();
+
+  // 13. Drug-Free Workplace Acknowledgment (NEW)
+  html += docDrugFreeWorkplace();
+
+  // 14. TB Screening Declaration (NEW)
+  html += docTBScreening();
+
+  // 15. Hepatitis B Vaccination Declaration (NEW)
+  html += docHepBVaccination();
+
+  // 16. Bloodborne Pathogen Training Acknowledgment (NEW)
+  html += docBloodbornePathogen();
+
+  // 17. CPR/BLS Certification Acknowledgment (NEW)
+  html += docCPRBLS();
+
+  // 18. Supervision Agreement (NEW, intern only)
+  if (isInternRole()) {
+    html += docSupervisionAgreement();
+  }
+
+  // 19. Independent Contractor Information (1099 only)
+  if (isContractedRole()) {
+    html += docContractorInfo();
+  }
+
+  // 20. Offer of Employment Letter
+  html += docOfferLetter();
+
+  // 21. Acceptance of Employment
+  html += docAcceptance();
+
+  // 22. W-4 Tax Withholding (W-2 only)
+  if (!isContractedRole()) {
+    html += docW4Substitute();
+  }
+
+  // 23. W-9 Taxpayer Identification (1099 only)
+  if (isContractedRole()) {
+    html += docW9Substitute();
+  }
+
+  // 24. I-9 Employment Eligibility
+  html += docI9Acknowledgment();
+
+  // 25. Direct Deposit Authorization
+  html += docDirectDeposit();
+
+  // 26. Phase Completion Sign-Off
+  html += docPhaseSignOff();
+
+  document.getElementById('documentContent').innerHTML = html;
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+</script>
+</body>
+</html>
