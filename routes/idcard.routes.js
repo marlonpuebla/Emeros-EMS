@@ -58,7 +58,20 @@ module.exports = function (app) {
     width:2.125in;height:3.375in;background:#fff;border:1px solid #d1d5db;border-radius:10px;
     padding:10px;display:flex;flex-direction:column;align-items:center;
     box-shadow:0 4px 12px rgba(0,0,0,.18);position:relative;overflow:hidden;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
   }
+  /* Frosted-teal gradient at the bottom third of the card — decorative. */
+  .card::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:36%;
+    background:linear-gradient(to top,
+      rgba(13,148,136,.32) 0%,
+      rgba(20,184,166,.22) 40%,
+      rgba(45,212,191,.10) 75%,
+      rgba(255,255,255,0) 100%);
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    border-radius:0 0 10px 10px;pointer-events:none;z-index:0;
+  }
+  .card > *{position:relative;z-index:1}
   .header{text-align:center;font-size:8.5px;font-weight:700;color:#0a5a3a;border-bottom:2px solid #0a5a3a;padding:2px 0 5px;width:100%;letter-spacing:.3px;line-height:1.15}
   .logo{max-height:40px;max-width:85%;object-fit:contain;display:block;margin:6px auto 4px}
   .photo{
@@ -73,7 +86,11 @@ module.exports = function (app) {
   .name{font-size:11.5px;font-weight:700;text-align:center;color:#0f172a;margin-top:4px;line-height:1.15;padding:0 2px}
   .position{font-size:8.5px;color:#475569;text-align:center;margin:2px 2px 4px;line-height:1.15}
   .badge-num{font-size:10.5px;font-weight:700;color:#0a5a3a;margin-top:2px;letter-spacing:.5px}
-  .barcode-wrap{margin-top:auto;width:100%;padding-top:4px;text-align:center}
+  .barcode-wrap{
+    margin-top:auto;width:100%;text-align:center;
+    background:rgba(255,255,255,.88);border-radius:6px;padding:4px 6px;
+    box-shadow:0 1px 2px rgba(0,0,0,.08);
+  }
   .barcode-wrap svg{width:100%;height:34px}
   .btn-row{display:flex;gap:8px}
   .btn{padding:8px 18px;border:1px solid #0a5a3a;background:#0a5a3a;color:#fff;font-size:13px;cursor:pointer;border-radius:6px;font-family:inherit}
