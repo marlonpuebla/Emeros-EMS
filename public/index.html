@@ -1501,7 +1501,7 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
         <input type="text" id="u-display-name" placeholder="Full name (optional)">
       </div>
       <div class="fg" style="margin-bottom:12px">
-        <label>Email</label>
+        <label>Email <span class="req">*</span></label>
         <input type="email" id="u-email" placeholder="user@example.com" autocomplete="off">
       </div>
       <div class="fg" style="margin-bottom:12px">
@@ -2667,6 +2667,7 @@ async function saveUser() {
     if (!username) { toast('Username is required', 'warn'); return; }
     if (!password || password.length < 8) { toast('Password must be at least 8 characters', 'warn'); return; }
     if (password !== confirmPw) { toast('Passwords do not match', 'warn'); return; }
+    if (!email) { toast('Email is required', 'warn'); return; }
     try {
       await api('/api/users', 'POST', { username, password, display_name: display_name || null,
         email: email || null, phone: phone || null, employee_id, role });
@@ -2681,9 +2682,10 @@ async function saveUser() {
     const employee_id = document.getElementById('u-employee-id').value || null;
     const role   = document.getElementById('u-role').value;
     const active = document.getElementById('u-active').checked;
+    if (!email) { toast('Email is required', 'warn'); return; }
     try {
       await api(`/api/users/${id}`, 'PUT', { display_name: display_name || null,
-        email: email || null, phone: phone || null, employee_id, role, active });
+        email, phone: phone || null, employee_id, role, active });
       toast('User updated', 'success');
       document.getElementById('user-modal').classList.remove('open');
       loadUsers();

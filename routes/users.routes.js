@@ -6,8 +6,10 @@ const { auth, adminOnly, audit } = require('../middleware/auth');
 const VALID_ROLES = ['admin', 'office_manager', 'editor', 'viewer'];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function validateEmail(email) {
-  if (email === null || email === undefined || email === '') return null;
+function validateEmail(email, { required } = {}) {
+  if (email === null || email === undefined || String(email).trim() === '') {
+    return required ? 'Email is required' : null;
+  }
   const trimmed = String(email).trim();
   if (!EMAIL_RE.test(trimmed)) return 'Invalid email format';
   return null;
@@ -50,7 +52,7 @@ module.exports = function (app) {
     if (dbGet('SELECT id FROM users WHERE username=?', [username]))
       return res.status(409).json({ error: 'Username already exists' });
 
-    const emailErr = validateEmail(email);
+    const emailErr = validateEmail(email, { required: true });
     if (emailErr) return res.status(400).json({ error: emailErr });
     const linkCheck = validateEmployeeLink(dbGet, null, employee_id);
     if (!linkCheck.ok) return res.status(400).json({ error: linkCheck.error });
@@ -83,7 +85,7 @@ module.exports = function (app) {
       return res.status(400).json({ error: 'You cannot deactivate your own account' });
 
     if (email !== undefined) {
-      const emailErr = validateEmail(email);
+      const emailErr = validateEmail(email, { required: true });
       if (emailErr) return res.status(400).json({ error: emailErr });
     }
     let employeeLinkValue;
