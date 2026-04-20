@@ -291,6 +291,15 @@ module.exports = function (app) {
         );
       }
 
+      // First successful Microsoft login locks the account to MS SSO from
+      // then on. Admin can unlock via the Users settings panel.
+      const { dbRun } = req.app.locals;
+      let justLocked = false;
+      if (!user.ms_locked) {
+        dbRun("UPDATE users SET ms_locked=1, updated_at=datetime('now') WHERE id=?", [user.id]);
+        justLocked = true;
+      }
+
       // Issue JWT same as normal login
       const jti   = crypto.randomUUID();
       const token = jwt.sign(
@@ -300,7 +309,7 @@ module.exports = function (app) {
       );
 
       req.user = { id: user.id, username: user.username };
-      audit(req, 'LOGIN_MICROSOFT', 'users', user.id, { email, name });
+      audit(req, 'LOGIN_MICROSOFT', 'users', user.id, { email, name, locked_now: justLocked });
 
       // Redirect to SPA with token in hash (client picks it up)
       res.redirect(`/#/auth/callback?token=${encodeURIComponent(token)}`);

@@ -1763,7 +1763,21 @@ async function doLogin() {
   err.style.display = 'none';
   if (!u || !p) { err.textContent = 'Enter username and password'; err.style.display = 'block'; return; }
   try {
-    const d = await api('/api/login', 'POST', {username:u, password:p}, false);
+    const res = await fetch(BASE_PATH + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p }),
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (d.ms_required) {
+        err.innerHTML = `${esc(d.error || 'This account requires Microsoft sign-in.')} <a href="/api/auth/microsoft" style="color:var(--green);text-decoration:underline;font-weight:600">Sign in with Microsoft</a>`;
+      } else {
+        err.textContent = d.error || 'Sign-in failed';
+      }
+      err.style.display = 'block';
+      return;
+    }
     token = d.token; CU = d.user;
     localStorage.setItem('hr_token', token);
     localStorage.setItem('hr_user', JSON.stringify(CU));
@@ -2559,8 +2573,11 @@ async function loadUsers() {
       const contactLine = (u.email || u.phone)
         ? `<div style="font-size:11px;color:var(--t2);margin-top:2px">${esc(u.email||'')}${u.email&&u.phone?' · ':''}${esc(u.phone||'')}</div>`
         : '';
+      const msLockBadge = u.ms_locked
+        ? `<span class="badge" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;margin-left:6px;font-size:10.5px" title="This user must sign in with Microsoft">MS&nbsp;only</span>`
+        : '';
       return `<tr style="cursor:default">
-        <td><strong>${esc(u.username)}</strong>${linkedEmp}</td>
+        <td><strong>${esc(u.username)}</strong>${msLockBadge}${linkedEmp}</td>
         <td>${esc(u.display_name || '—')}${contactLine}</td>
         <td><span class="badge ${badgeCls}">${roleLabel}</span></td>
         <td><span class="badge ${statusCls}"><span class="bdot"></span>${statusLbl}</span></td>
@@ -2573,6 +2590,9 @@ async function loadUsers() {
             <button class="icon-btn" title="Reset password" onclick="resetUserPassword(${u.id},'${esc(u.username)}')">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </button>
+            ${u.ms_locked ? `<button class="icon-btn" title="Clear Microsoft-only lock (allow password login again)" onclick="unlockMs(${u.id},'${esc(u.username)}')">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+            </button>` : ''}
             ${u.username !== CU.username ? `<button class="icon-btn danger" title="Delete user" onclick="deleteUser(${u.id},'${esc(u.username)}')">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
             </button>` : ''}
@@ -2701,6 +2721,15 @@ function resetUserPassword(id, username) {
   document.getElementById('reset-pw-form').style.display = '';
   document.getElementById('reset-pw-btn').style.display = '';
   document.getElementById('reset-pw-modal').classList.add('open');
+}
+
+async function unlockMs(id, username) {
+  if (!confirm(`Clear the Microsoft-only lock on "${username}"?\n\nThey will be able to sign in with username and password again until the next time they use Microsoft login.`)) return;
+  try {
+    await api(`/api/users/${id}/unlock-ms`, 'POST');
+    toast(`Microsoft lock cleared for ${username}`, 'success');
+    loadUsers();
+  } catch(e) { toast(e.message, 'error'); }
 }
 
 function closeResetPwModal(ev) {

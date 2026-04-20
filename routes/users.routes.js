@@ -32,13 +32,24 @@ module.exports = function (app) {
   app.get('/api/users', auth, adminOnly, (_req, res) => {
     res.json(dbAll(
       'SELECT u.id, u.username, u.role, u.display_name, u.active, u.must_change_password, ' +
-      '       u.email, u.phone, u.employee_id, u.created_at, ' +
+      '       u.email, u.phone, u.employee_id, u.ms_locked, u.created_at, ' +
       '       e.badge_number AS employee_badge, ' +
       '       e.first_name   AS employee_first_name, ' +
       '       e.last_name    AS employee_last_name ' +
       'FROM users u LEFT JOIN employees e ON u.employee_id = e.id ' +
       'ORDER BY u.username'
     ));
+  });
+
+  // POST /api/users/:id/unlock-ms — admin clears the Microsoft-SSO lock so
+  // this user can sign in with username+password again.
+  app.post('/api/users/:id/unlock-ms', auth, adminOnly, (req, res) => {
+    const target = dbGet('SELECT id, username, ms_locked FROM users WHERE id=?', [req.params.id]);
+    if (!target) return res.status(404).json({ error: 'User not found' });
+    if (!target.ms_locked) return res.json({ ok: true, already_unlocked: true });
+    dbRun("UPDATE users SET ms_locked=0, updated_at=datetime('now') WHERE id=?", [req.params.id]);
+    audit(req, 'UNLOCK_MS', 'users', Number(req.params.id), { username: target.username });
+    res.json({ ok: true });
   });
 
   app.post('/api/users', auth, adminOnly, (req, res) => {

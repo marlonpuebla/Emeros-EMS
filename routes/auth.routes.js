@@ -28,6 +28,17 @@ module.exports = function (app) {
     if (!user.active)
       return res.status(403).json({ error: 'Account is deactivated. Contact an administrator.' });
 
+    // Once a user has signed in via Microsoft, password login is disabled for
+    // that account. Admin can clear this flag from Settings → Users.
+    if (user.ms_locked) {
+      recordAttempt(dbRun, identifier, true);
+      audit(req, 'LOGIN_BLOCKED_MS_REQUIRED', 'users', user.id, { username });
+      return res.status(403).json({
+        error: 'This account must sign in with Microsoft.',
+        ms_required: true,
+      });
+    }
+
     recordAttempt(dbRun, identifier, true);
     const jti   = crypto.randomUUID();
     const token = jwt.sign(
