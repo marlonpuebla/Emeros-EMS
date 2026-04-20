@@ -1,5 +1,25 @@
 'use strict';
+const path   = require('path');
+const fs     = require('fs');
+const multer = require('multer');
 const { auth, editorOrAbove, adminOnly, audit } = require('../middleware/auth');
+const config = require('../config');
+
+const photoStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, config.UPLOAD_DIR),
+  filename:    (req, file, cb) => {
+    const ext = (path.extname(file.originalname) || '.jpg').toLowerCase();
+    cb(null, `emp_${req.params.id}_${Date.now()}${ext}`);
+  },
+});
+const photoUpload = multer({
+  storage: photoStorage,
+  limits:  { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (['image/png', 'image/jpeg', 'image/jpg', 'image/webp'].includes(file.mimetype)) return cb(null, true);
+    cb(new Error('Only PNG, JPEG, and WebP images are allowed'), false);
+  },
+});
 
 const EMP_FIELDS = [
   'status','last_name','first_name','employment_date','dob','gender',
@@ -49,6 +69,15 @@ function pickEmp(body) {
   return obj;
 }
 
+function nextBadgeNumber(dbGet) {
+  const row = dbGet(
+    "SELECT MAX(CAST(SUBSTR(badge_number, 5) AS INTEGER)) AS n " +
+    "FROM employees WHERE badge_number LIKE 'EMP-%'"
+  );
+  const next = (row?.n || 0) + 1;
+  return `EMP-${String(next).padStart(4, '0')}`;
+}
+
 module.exports = function (app) {
   const { dbAll, dbGet, dbRun, lastInsertId } = app.locals;
 
@@ -92,12 +121,14 @@ module.exports = function (app) {
     const fields = pickEmp(req.body);
     if (!fields.last_name || !fields.first_name)
       return res.status(400).json({ error: 'First and last name are required' });
+    fields.badge_number = nextBadgeNumber(dbGet);
     const cols = Object.keys(fields).join(',');
     const phs  = Object.keys(fields).map(() => '?').join(',');
     dbRun(`INSERT INTO employees (${cols}) VALUES (${phs})`, Object.values(fields));
     const id = lastInsertId();
-    audit(req, 'CREATE_EMPLOYEE', 'employees', id, { name: `${fields.first_name} ${fields.last_name}` });
-    res.json({ success: true, id });
+    audit(req, 'CREATE_EMPLOYEE', 'employees', id,
+      { name: `${fields.first_name} ${fields.last_name}`, badge_number: fields.badge_number });
+    res.json({ success: true, id, badge_number: fields.badge_number });
   });
 
   /* ── UPDATE ─────────────────────────────────────────────── */
@@ -116,6 +147,55 @@ module.exports = function (app) {
     dbRun('DELETE FROM employees WHERE id=?', [req.params.id]);
     audit(req, 'DELETE_EMPLOYEE', 'employees', Number(req.params.id), { name: `${e?.first_name} ${e?.last_name}` });
     res.json({ success: true });
+  });
+
+  /* ── PHOTO upload / serve / remove ──────────────────────── */
+  app.post('/api/employees/:id/photo', auth, editorOrAbove,
+    (req, res, next) => photoUpload.single('photo')(req, res, (err) => {
+      if (err) return res.status(400).json({ error: err.message });
+      next();
+    }),
+    (req, res) => {
+      if (!req.file) return res.status(400).json({ error: 'No photo uploaded' });
+      const emp = dbGet('SELECT id, photo_url FROM employees WHERE id=?', [req.params.id]);
+      if (!emp) {
+        fs.unlink(req.file.path, () => {});
+        return res.status(404).json({ error: 'Employee not found' });
+      }
+      if (emp.photo_url) {
+        const oldName = emp.photo_url.split('/').pop();
+        const oldPath = path.join(config.UPLOAD_DIR, oldName);
+        if (oldName && oldName.startsWith(`emp_${req.params.id}_`) && fs.existsSync(oldPath)) {
+          fs.unlink(oldPath, () => {});
+        }
+      }
+      dbRun('UPDATE employees SET photo_url=?, updated_at=? WHERE id=?',
+        [req.file.filename, new Date().toISOString(), req.params.id]);
+      audit(req, 'UPLOAD_EMPLOYEE_PHOTO', 'employees', Number(req.params.id),
+        { file: req.file.originalname });
+      res.json({ ok: true, photo_url: req.file.filename });
+    });
+
+  app.get('/api/employees/:id/photo', auth, (req, res) => {
+    const emp = dbGet('SELECT photo_url FROM employees WHERE id=?', [req.params.id]);
+    if (!emp || !emp.photo_url) return res.status(404).json({ error: 'No photo' });
+    const filePath = path.join(config.UPLOAD_DIR, emp.photo_url);
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Photo missing from disk' });
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    res.sendFile(filePath);
+  });
+
+  app.delete('/api/employees/:id/photo', auth, editorOrAbove, (req, res) => {
+    const emp = dbGet('SELECT photo_url FROM employees WHERE id=?', [req.params.id]);
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+    if (emp.photo_url) {
+      const filePath = path.join(config.UPLOAD_DIR, emp.photo_url);
+      if (fs.existsSync(filePath)) fs.unlink(filePath, () => {});
+    }
+    dbRun('UPDATE employees SET photo_url=NULL, updated_at=? WHERE id=?',
+      [new Date().toISOString(), req.params.id]);
+    audit(req, 'DELETE_EMPLOYEE_PHOTO', 'employees', Number(req.params.id));
+    res.json({ ok: true });
   });
 
   /* ── DISCHARGE / REACTIVATE ─────────────────────────────── */

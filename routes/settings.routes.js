@@ -1,8 +1,28 @@
 'use strict';
+const path   = require('path');
+const fs     = require('fs');
 const crypto = require('crypto');
+const multer = require('multer');
 const jwt    = require('jsonwebtoken');
 const config = require('../config');
 const { auth, adminOnly, audit } = require('../middleware/auth');
+
+const logoStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, config.UPLOAD_DIR),
+  filename:    (_req, file, cb) => {
+    const ext = (path.extname(file.originalname) || '.png').toLowerCase();
+    cb(null, `logo_${Date.now()}${ext}`);
+  },
+});
+const logoUpload = multer({
+  storage: logoStorage,
+  limits:  { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'].includes(file.mimetype))
+      return cb(null, true);
+    cb(new Error('Only PNG, JPEG, WebP, and SVG images are allowed'), false);
+  },
+});
 
 module.exports = function (app) {
   /* ═══════════════════════════════════════════════════════════
@@ -60,15 +80,81 @@ module.exports = function (app) {
   });
 
   /* ═══════════════════════════════════════════════════════════
+     LOGO upload / serve
+  ═══════════════════════════════════════════════════════════ */
+
+  // POST /api/settings/logo — admin uploads org logo
+  app.post('/api/settings/logo', auth, adminOnly,
+    (req, res, next) => logoUpload.single('logo')(req, res, (err) => {
+      if (err) return res.status(400).json({ error: err.message });
+      next();
+    }),
+    (req, res) => {
+      if (!req.file) return res.status(400).json({ error: 'No logo uploaded' });
+      const { dbGet, dbRun } = req.app.locals;
+      const prev = dbGet("SELECT value FROM app_settings WHERE key='org_logo_url'");
+      if (prev?.value) {
+        const oldName = prev.value.split('/').pop();
+        const oldPath = path.join(config.UPLOAD_DIR, oldName);
+        if (oldName && oldName.startsWith('logo_') && fs.existsSync(oldPath)) {
+          fs.unlink(oldPath, () => {});
+        }
+      }
+      dbRun(
+        "INSERT INTO app_settings (key, value, updated_at) VALUES ('org_logo_url', ?, datetime('now')) " +
+        "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+        [req.file.filename]
+      );
+      audit(req, 'UPLOAD_LOGO', 'app_settings', null, { file: req.file.originalname });
+      res.json({ ok: true, filename: req.file.filename });
+    });
+
+  // GET /api/settings/logo — public, serves the logo file (for login page + ID cards)
+  app.get('/api/settings/logo', (req, res) => {
+    const { dbGet } = req.app.locals;
+    const row = dbGet("SELECT value FROM app_settings WHERE key='org_logo_url'");
+    if (!row?.value) return res.status(404).end();
+    const filePath = path.join(config.UPLOAD_DIR, row.value);
+    if (!fs.existsSync(filePath)) return res.status(404).end();
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.sendFile(filePath);
+  });
+
+  // DELETE /api/settings/logo — admin removes the logo
+  app.delete('/api/settings/logo', auth, adminOnly, (req, res) => {
+    const { dbGet, dbRun } = req.app.locals;
+    const prev = dbGet("SELECT value FROM app_settings WHERE key='org_logo_url'");
+    if (prev?.value) {
+      const oldName = prev.value.split('/').pop();
+      const oldPath = path.join(config.UPLOAD_DIR, oldName);
+      if (oldName && oldName.startsWith('logo_') && fs.existsSync(oldPath)) {
+        fs.unlink(oldPath, () => {});
+      }
+    }
+    dbRun(
+      "INSERT INTO app_settings (key, value, updated_at) VALUES ('org_logo_url', '', datetime('now')) " +
+      "ON CONFLICT(key) DO UPDATE SET value='', updated_at=excluded.updated_at"
+    );
+    audit(req, 'DELETE_LOGO', 'app_settings', null);
+    res.json({ ok: true });
+  });
+
+  /* ═══════════════════════════════════════════════════════════
      USER SELF-SERVICE
   ═══════════════════════════════════════════════════════════ */
 
-  // GET /api/me/profile — own user info
+  // GET /api/me/profile — own user info (includes linked employee if any)
   app.get('/api/me/profile', auth, (req, res) => {
     try {
       const { dbGet } = req.app.locals;
       const user = dbGet(
-        'SELECT id, username, role, display_name, active, created_at FROM users WHERE id = ?',
+        'SELECT u.id, u.username, u.role, u.display_name, u.active, u.created_at, ' +
+        '       u.email, u.phone, u.employee_id, ' +
+        '       e.badge_number AS employee_badge, ' +
+        '       e.first_name   AS employee_first_name, ' +
+        '       e.last_name    AS employee_last_name ' +
+        'FROM users u LEFT JOIN employees e ON u.employee_id = e.id ' +
+        'WHERE u.id = ?',
         [req.user.id]
       );
       if (!user) return res.status(404).json({ error: 'User not found' });

@@ -113,7 +113,28 @@ if __name__ == '__main__':
         except Exception as e:
             warnings.append(f"Row {i}: {str(e)}")
 
+    # Assign badge numbers to any employees missing one, ordered oldest hire first
+    c.execute("""
+        SELECT id FROM employees
+        WHERE badge_number IS NULL OR badge_number = ''
+        ORDER BY
+            CASE WHEN employment_date IS NULL OR employment_date = '' THEN 1 ELSE 0 END,
+            employment_date ASC,
+            id ASC
+    """)
+    missing = [r['id'] for r in c.fetchall()]
+    badges_assigned = 0
+    if missing:
+        c.execute("SELECT MAX(CAST(SUBSTR(badge_number, 5) AS INTEGER)) AS n "
+                  "FROM employees WHERE badge_number LIKE 'EMP-%'")
+        start = (c.fetchone()['n'] or 0) + 1
+        for i, emp_id in enumerate(missing):
+            badge = f"EMP-{start + i:04d}"
+            c.execute("UPDATE employees SET badge_number=? WHERE id=?", (badge, emp_id))
+            badges_assigned += 1
+
     conn.commit()
     conn.close()
     print(json.dumps({'ok': True, 'inserted': inserted, 'updated': updated,
-                      'skipped': skipped, 'warnings': warnings}))
+                      'skipped': skipped, 'badges_assigned': badges_assigned,
+                      'warnings': warnings}))
