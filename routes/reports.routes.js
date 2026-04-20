@@ -130,6 +130,14 @@ module.exports = function (app) {
   /* ── Excel import ───────────────────────────────────────── */
   app.post('/api/import/excel', auth, adminOnly, upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    // Debug: snapshot the uploaded file for post-mortem when imports fail.
+    try {
+      const dbgDir = path.join(config.DATA_DIR, 'import_debug');
+      if (!fs.existsSync(dbgDir)) fs.mkdirSync(dbgDir, { recursive: true });
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const safeName = (req.file.originalname || 'upload').replace(/[^\w.\- ]/g, '_').slice(0, 80);
+      fs.copyFileSync(req.file.path, path.join(dbgDir, `${stamp}__${safeName}`));
+    } catch (_) { /* best effort */ }
     const importScript = path.join(__dirname, '..', 'import_excel.py');
     execFile('python3', [importScript, req.file.path, config.DB_PATH],
       { timeout: 60000 }, (err, stdout, stderr) => {
