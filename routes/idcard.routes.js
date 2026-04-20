@@ -88,7 +88,7 @@ module.exports = function (app) {
     z-index:1;pointer-events:none;
   }
   .watermark img{
-    width:150%;max-width:none;opacity:.18;
+    width:150%;max-width:none;opacity:.32;
     filter:brightness(0) invert(1);
   }
   .card > *:not(.watermark){position:relative;z-index:2}
