@@ -107,8 +107,20 @@ module.exports = function (app) {
     res.json(incidents);
   });
 
+  /* ── STATS — registered before /:id to avoid route conflict ── */
+  app.get('/api/incidents/stats', auth, editorOrAbove, (req, res) => {
+    const total     = dbGet("SELECT COUNT(*) as n FROM incident_reports").n;
+    const open      = dbGet("SELECT COUNT(*) as n FROM incident_reports WHERE status='open'").n;
+    const osha      = dbGet("SELECT COUNT(*) as n FROM incident_reports WHERE osha_recordable=1").n;
+    const ytd       = dbGet("SELECT COUNT(*) as n FROM incident_reports WHERE incident_date >= date('now','start of year')").n;
+    const sentinel  = dbGet("SELECT COUNT(*) as n FROM incident_reports WHERE sentinel_event=1").n;
+    const ahca_due  = dbGet("SELECT COUNT(*) as n FROM incident_reports WHERE fl_ahca_reportable=1 AND (fl_ahca_reported_date IS NULL OR fl_ahca_reported_date='')").n;
+    const byType    = dbAll("SELECT type, COUNT(*) as n FROM incident_reports GROUP BY type ORDER BY n DESC");
+    res.json({ total, open, osha, ytd, sentinel, ahca_due, byType });
+  });
+
   /* ── GET ONE ─────────────────────────────────────────────── */
-  app.get('/api/incidents/:id(\\d+)', auth, editorOrAbove, (req, res) => {
+  app.get('/api/incidents/:id', auth, editorOrAbove, (req, res) => {
     const inc = dbGet('SELECT * FROM incident_reports WHERE id=?', [req.params.id]);
     if (!inc) return res.status(404).json({ error: 'Incident not found' });
     inc.involved      = dbAll('SELECT * FROM incident_involved      WHERE incident_id=? ORDER BY id', [inc.id]);
@@ -197,7 +209,7 @@ module.exports = function (app) {
   });
 
   /* ── UPDATE ─────────────────────────────────────────────── */
-  app.put('/api/incidents/:id(\\d+)', auth, editorOrAbove, (req, res) => {
+  app.put('/api/incidents/:id', auth, editorOrAbove, (req, res) => {
     const inc = dbGet('SELECT * FROM incident_reports WHERE id=?', [req.params.id]);
     if (!inc) return res.status(404).json({ error: 'Incident not found' });
 
@@ -233,7 +245,7 @@ module.exports = function (app) {
   });
 
   /* ── ADD NOTIFICATION ───────────────────────────────────── */
-  app.post('/api/incidents/:id(\\d+)/notifications', auth, editorOrAbove, (req, res) => {
+  app.post('/api/incidents/:id/notifications', auth, editorOrAbove, (req, res) => {
     const inc = dbGet('SELECT id FROM incident_reports WHERE id=?', [req.params.id]);
     if (!inc) return res.status(404).json({ error: 'Incident not found' });
     const { notified_party, notified_at, method, notes } = req.body;
@@ -247,7 +259,7 @@ module.exports = function (app) {
   });
 
   /* ── DELETE (manager+) ──────────────────────────────────── */
-  app.delete('/api/incidents/:id(\\d+)', auth, managerOrAdmin, (req, res) => {
+  app.delete('/api/incidents/:id', auth, managerOrAdmin, (req, res) => {
     const inc = dbGet('SELECT id, report_number FROM incident_reports WHERE id=?', [req.params.id]);
     if (!inc) return res.status(404).json({ error: 'Incident not found' });
     dbRun('DELETE FROM incident_reports WHERE id=?', [req.params.id]);
@@ -255,20 +267,8 @@ module.exports = function (app) {
     res.json({ success: true });
   });
 
-  /* ── STATS ───────────────────────────────────────────────── */
-  app.get('/api/incidents/stats', auth, editorOrAbove, (req, res) => {
-    const total     = dbGet("SELECT COUNT(*) as n FROM incident_reports").n;
-    const open      = dbGet("SELECT COUNT(*) as n FROM incident_reports WHERE status='open'").n;
-    const osha      = dbGet("SELECT COUNT(*) as n FROM incident_reports WHERE osha_recordable=1").n;
-    const ytd       = dbGet("SELECT COUNT(*) as n FROM incident_reports WHERE incident_date >= date('now','start of year')").n;
-    const sentinel  = dbGet("SELECT COUNT(*) as n FROM incident_reports WHERE sentinel_event=1").n;
-    const ahca_due  = dbGet("SELECT COUNT(*) as n FROM incident_reports WHERE fl_ahca_reportable=1 AND (fl_ahca_reported_date IS NULL OR fl_ahca_reported_date='')").n;
-    const byType    = dbAll("SELECT type, COUNT(*) as n FROM incident_reports GROUP BY type ORDER BY n DESC");
-    res.json({ total, open, osha, ytd, sentinel, ahca_due, byType });
-  });
-
   /* ── PRINT ───────────────────────────────────────────────── */
-  app.get('/api/incidents/:id(\\d+)/print', auth, editorOrAbove, (req, res) => {
+  app.get('/api/incidents/:id/print', auth, editorOrAbove, (req, res) => {
     const inc = dbGet('SELECT * FROM incident_reports WHERE id=?', [req.params.id]);
     if (!inc) return res.status(404).send('Incident not found');
 
