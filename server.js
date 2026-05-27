@@ -62,6 +62,13 @@ initDb().then(() => {
   require('./routes/signatures.routes')(app);
   require('./routes/idcard.routes')(app);
   require('./routes/access.routes')(app);
+  require('./routes/audit.routes')(app);
+  require('./routes/disciplinary.routes')(app);
+  require('./routes/training.routes')(app);
+  require('./routes/supervision.routes')(app);
+  require('./routes/incidents.routes')(app);
+  require('./routes/equipment.routes')(app);
+  require('./routes/offboarding.routes')(app);
 
   // Start credential reminder scheduler
   const startScheduler = require('./services/scheduler.service');

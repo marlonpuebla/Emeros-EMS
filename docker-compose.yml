@@ -1,0 +1,29 @@
+services:
+  ems:
+    build: .
+    container_name: emeros-ems
+    restart: unless-stopped
+    ports:
+      - "3001:3001"          # Change left side to remap, e.g. "8080:3001"
+    volumes:
+      # Persist the SQLite database, uploads, and config between container restarts.
+      # The ./data folder is created automatically on first run.
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=production
+      # Override any of these in data/config.env (loaded at runtime by config.js):
+      #   JWT_SECRET=your-very-long-random-string
+      #   ALLOWED_ORIGIN=https://ems.yourcompany.com
+      #   ACCESS_API_KEY=door-controller-secret
+      #   PORT=3001
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/stats"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"

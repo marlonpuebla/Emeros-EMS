@@ -316,6 +316,149 @@ async function initDb() {
     signed_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
+  /* ── New modules ────────────────────────────────────────── */
+
+  dbRun(`CREATE TABLE IF NOT EXISTS disciplinary_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    incident_date TEXT NOT NULL,
+    description TEXT NOT NULL,
+    action_taken TEXT,
+    follow_up_date TEXT,
+    follow_up_notes TEXT,
+    resolved INTEGER DEFAULT 0,
+    resolved_date TEXT,
+    witness TEXT,
+    employee_acknowledged INTEGER DEFAULT 0,
+    created_by TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  dbRun(`CREATE TABLE IF NOT EXISTS training_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    training_name TEXT NOT NULL,
+    category TEXT,
+    provider TEXT,
+    completion_date TEXT NOT NULL,
+    expiration_date TEXT,
+    hours REAL,
+    certificate_number TEXT,
+    notes TEXT,
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  dbRun(`CREATE TABLE IF NOT EXISTS supervision_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    supervisee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    supervisor_id INTEGER REFERENCES employees(id),
+    supervisor_name TEXT,
+    session_date TEXT NOT NULL,
+    duration_minutes INTEGER,
+    modality TEXT,
+    topics TEXT,
+    client_cases_reviewed TEXT,
+    notes TEXT,
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  dbRun(`CREATE TABLE IF NOT EXISTS incident_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_number TEXT UNIQUE,
+    report_date TEXT NOT NULL,
+    incident_date TEXT NOT NULL,
+    incident_time TEXT,
+    location TEXT,
+    type TEXT NOT NULL,
+    description TEXT NOT NULL,
+    immediate_action TEXT,
+    osha_recordable INTEGER DEFAULT 0,
+    osha_case_number TEXT,
+    days_away INTEGER DEFAULT 0,
+    days_restricted INTEGER DEFAULT 0,
+    root_cause TEXT,
+    corrective_action TEXT,
+    status TEXT DEFAULT 'open',
+    reported_by TEXT,
+    reviewed_by TEXT,
+    reviewed_at TEXT,
+    closed_at TEXT,
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  dbRun(`CREATE TABLE IF NOT EXISTS incident_involved (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    incident_id INTEGER NOT NULL REFERENCES incident_reports(id) ON DELETE CASCADE,
+    employee_id INTEGER REFERENCES employees(id),
+    employee_name TEXT,
+    role TEXT
+  )`);
+
+  dbRun(`CREATE TABLE IF NOT EXISTS equipment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    type TEXT,
+    asset_tag TEXT,
+    serial_number TEXT,
+    description TEXT,
+    status TEXT DEFAULT 'available',
+    location TEXT,
+    purchase_date TEXT,
+    purchase_price REAL,
+    warranty_expiration TEXT,
+    notes TEXT,
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  dbRun(`CREATE TABLE IF NOT EXISTS equipment_assignments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    equipment_id INTEGER NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+    employee_id INTEGER NOT NULL REFERENCES employees(id),
+    assigned_date TEXT NOT NULL,
+    returned_date TEXT,
+    condition_out TEXT,
+    condition_in TEXT,
+    notes TEXT,
+    assigned_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  dbRun(`CREATE TABLE IF NOT EXISTS offboarding_packages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    status TEXT DEFAULT 'in_progress',
+    termination_type TEXT,
+    last_day TEXT,
+    exit_interview_done INTEGER DEFAULT 0,
+    assigned_to TEXT,
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    completed_at DATETIME
+  )`);
+
+  dbRun(`CREATE TABLE IF NOT EXISTS offboarding_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    package_id INTEGER NOT NULL REFERENCES offboarding_packages(id) ON DELETE CASCADE,
+    category TEXT NOT NULL,
+    item_name TEXT NOT NULL,
+    description TEXT,
+    required INTEGER DEFAULT 1,
+    status TEXT DEFAULT 'pending',
+    completed_by TEXT,
+    completed_at DATETIME,
+    notes TEXT,
+    sort_order INTEGER DEFAULT 0
+  )`);
+
   /* ── Safe migrations for existing DBs ────────────────── */
   const migrations = [
     'ALTER TABLE employees ADD COLUMN wc_exemption_number TEXT',
@@ -779,4 +922,15 @@ function seedTemplates() {
   console.log('[db] Seeded 6 hiring package templates');
 }
 
-module.exports = { initDb, dbAll, dbGet, dbRun, lastInsertId, saveDb, reloadDb, generateAccessToken };
+/* ─── Incident report number generator ─────────────────────── */
+function generateIncidentNumber(dbGet) {
+  const year = new Date().getFullYear();
+  const row = dbGet(
+    "SELECT COUNT(*) as n FROM incident_reports WHERE report_number LIKE ?",
+    [`INC-${year}-%`]
+  );
+  const seq = (row?.n || 0) + 1;
+  return `INC-${year}-${String(seq).padStart(4, '0')}`;
+}
+
+module.exports = { initDb, dbAll, dbGet, dbRun, lastInsertId, saveDb, reloadDb, generateAccessToken, generateIncidentNumber };

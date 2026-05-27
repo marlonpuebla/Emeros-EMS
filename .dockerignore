@@ -1,0 +1,27 @@
+# Dependencies (re-installed in Docker)
+node_modules/
+
+# Persistent data — always mount as volume, never bake into image
+data/
+
+# Git
+.git/
+.gitignore
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docker itself
+Dockerfile
+docker-compose.yml
+.dockerignore

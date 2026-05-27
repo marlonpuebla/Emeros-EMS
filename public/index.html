@@ -378,6 +378,26 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         Payments
       </div>
+      <div class="nav-section editor-only" style="display:none">HR Operations</div>
+      <div class="nav-item editor-only" id="nav-disciplinary" onclick="showPage('disciplinary')" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>Disciplinary
+      </div>
+      <div class="nav-item editor-only" id="nav-training" onclick="showPage('training')" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>Training
+      </div>
+      <div class="nav-item editor-only" id="nav-supervision" onclick="showPage('supervision')" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Supervision
+      </div>
+      <div class="nav-item editor-only" id="nav-offboarding" onclick="showPage('offboarding')" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>Offboarding
+      </div>
+      <div class="nav-section editor-only" style="display:none">Safety &amp; Assets</div>
+      <div class="nav-item editor-only" id="nav-incidents" onclick="showPage('incidents')" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Incident Reports
+      </div>
+      <div class="nav-item editor-only" id="nav-equipment" onclick="showPage('equipment')" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>Equipment
+      </div>
       <div class="nav-section">Reports</div>
       <div class="nav-item" id="nav-reports" onclick="showPage('reports')">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -939,6 +959,184 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ═══════════════ DISCIPLINARY ═══════════════ -->
+    <div class="pw" id="page-disciplinary">
+      <div class="topbar">
+        <div class="topbar-title">Disciplinary &amp; Performance</div>
+        <div class="topbar-acts">
+          <input type="text" class="search-box" id="disc-search" placeholder="Search employee…" oninput="loadDisciplinary()" style="width:200px">
+          <select id="disc-type-filter" onchange="loadDisciplinary()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
+            <option value="">All Types</option>
+            <option value="verbal_warning">Verbal Warning</option>
+            <option value="written_warning">Written Warning</option>
+            <option value="final_warning">Final Warning</option>
+            <option value="pip">PIP</option>
+            <option value="counseling">Counseling</option>
+            <option value="performance_review">Performance Review</option>
+            <option value="commendation">Commendation</option>
+            <option value="termination_warning">Termination Warning</option>
+          </select>
+          <select id="disc-resolved-filter" onchange="loadDisciplinary()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
+            <option value="">All</option><option value="0">Open</option><option value="1">Resolved</option>
+          </select>
+          <button class="btn btn-primary" onclick="openDiscForm()">+ Add Record</button>
+        </div>
+      </div>
+      <div class="page">
+        <div class="stats-row" style="grid-template-columns:repeat(3,1fr);max-width:600px;margin-bottom:20px">
+          <div class="sc"><div class="sc-label">Total Records</div><div class="sc-value" id="disc-stat-total">—</div></div>
+          <div class="sc amber"><div class="sc-label">Open</div><div class="sc-value" id="disc-stat-open">—</div></div>
+          <div class="sc red"><div class="sc-label">Follow-Up Due</div><div class="sc-value" id="disc-stat-followup">—</div></div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table><thead><tr><th>Employee</th><th>Type</th><th>Date</th><th>Description</th><th>Follow-Up</th><th>Status</th><th></th></tr></thead>
+            <tbody id="disc-tbody"><tr><td colspan="7" class="tempty">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ TRAINING ═══════════════ -->
+    <div class="pw" id="page-training">
+      <div class="topbar">
+        <div class="topbar-title">Training Records</div>
+        <div class="topbar-acts">
+          <input type="text" class="search-box" id="train-search" placeholder="Search…" oninput="loadTraining()" style="width:180px">
+          <select id="train-cat-filter" onchange="loadTraining()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
+            <option value="">All Categories</option>
+            <option value="required">Required</option><option value="ceu">CEU</option>
+            <option value="certification">Certification</option><option value="safety">Safety</option>
+            <option value="compliance">Compliance</option><option value="hipaa">HIPAA</option>
+            <option value="clinical">Clinical</option><option value="other">Other</option>
+          </select>
+          <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="train-expiring" onchange="loadTraining()"> Expiring in 60d
+          </label>
+          <button class="btn btn-primary" onclick="openTrainForm()">+ Add Training</button>
+        </div>
+      </div>
+      <div class="page">
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table><thead><tr><th>Employee</th><th>Training</th><th>Category</th><th>Provider</th><th>Completed</th><th>Expiration</th><th>Hours</th><th></th></tr></thead>
+            <tbody id="train-tbody"><tr><td colspan="8" class="tempty">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ SUPERVISION ═══════════════ -->
+    <div class="pw" id="page-supervision">
+      <div class="topbar">
+        <div class="topbar-title">Supervision Logs</div>
+        <div class="topbar-acts">
+          <select id="sup-emp-filter" onchange="loadSupervision()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit;max-width:220px">
+            <option value="">All Supervisees</option>
+          </select>
+          <button class="btn btn-primary" onclick="openSupForm()">+ Log Session</button>
+        </div>
+      </div>
+      <div class="page">
+        <div id="sup-hours-banner" style="display:none;background:var(--green-lt);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;font-size:14px"></div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table><thead><tr><th>Supervisee</th><th>Supervisor</th><th>Date</th><th>Duration</th><th>Modality</th><th>Topics</th><th></th></tr></thead>
+            <tbody id="sup-tbody"><tr><td colspan="7" class="tempty">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ OFFBOARDING ═══════════════ -->
+    <div class="pw" id="page-offboarding">
+      <div class="topbar">
+        <div class="topbar-title">Offboarding Packages</div>
+        <div class="topbar-acts">
+          <select id="offb-status-filter" onchange="loadOffboarding()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
+            <option value="">All</option><option value="in_progress">In Progress</option><option value="completed">Completed</option>
+          </select>
+          <button class="btn btn-primary" onclick="openOffbForm()">+ Start Offboarding</button>
+        </div>
+      </div>
+      <div class="page">
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table><thead><tr><th>Employee</th><th>Termination Type</th><th>Last Day</th><th>Progress</th><th>Status</th><th>Assigned To</th><th></th></tr></thead>
+            <tbody id="offb-tbody"><tr><td colspan="7" class="tempty">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ INCIDENTS ═══════════════ -->
+    <div class="pw" id="page-incidents">
+      <div class="topbar">
+        <div class="topbar-title">Incident Reports</div>
+        <div class="topbar-acts">
+          <input type="text" class="search-box" id="inc-search" placeholder="Search…" oninput="loadIncidents()" style="width:180px">
+          <select id="inc-type-filter" onchange="loadIncidents()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
+            <option value="">All Types</option>
+            <option value="workplace_injury">Workplace Injury</option><option value="near_miss">Near Miss</option>
+            <option value="patient_complaint">Patient Complaint</option><option value="property_damage">Property Damage</option>
+            <option value="security">Security</option><option value="medication_error">Medication Error</option>
+            <option value="fall">Fall</option><option value="exposure">Exposure</option><option value="other">Other</option>
+          </select>
+          <select id="inc-status-filter" onchange="loadIncidents()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
+            <option value="">All Statuses</option><option value="open">Open</option><option value="under_review">Under Review</option><option value="closed">Closed</option>
+          </select>
+          <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" id="inc-osha-filter" onchange="loadIncidents()"> OSHA Only
+          </label>
+          <button class="btn btn-primary" onclick="openIncForm()">+ New Report</button>
+        </div>
+      </div>
+      <div class="page">
+        <div class="stats-row" style="grid-template-columns:repeat(4,1fr);max-width:700px;margin-bottom:20px">
+          <div class="sc"><div class="sc-label">Total</div><div class="sc-value" id="inc-stat-total">—</div></div>
+          <div class="sc amber"><div class="sc-label">Open</div><div class="sc-value" id="inc-stat-open">—</div></div>
+          <div class="sc red"><div class="sc-label">OSHA Recordable</div><div class="sc-value" id="inc-stat-osha">—</div></div>
+          <div class="sc ok"><div class="sc-label">YTD</div><div class="sc-value" id="inc-stat-ytd">—</div></div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table><thead><tr><th>Report #</th><th>Date</th><th>Type</th><th>Location</th><th>Description</th><th>OSHA</th><th>Status</th><th></th></tr></thead>
+            <tbody id="inc-tbody"><tr><td colspan="8" class="tempty">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ EQUIPMENT ═══════════════ -->
+    <div class="pw" id="page-equipment">
+      <div class="topbar">
+        <div class="topbar-title">Equipment &amp; Assets</div>
+        <div class="topbar-acts">
+          <input type="text" class="search-box" id="eq-search" placeholder="Search…" oninput="loadEquipment()" style="width:180px">
+          <select id="eq-type-filter" onchange="loadEquipment()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
+            <option value="">All Types</option>
+            <option value="laptop">Laptop</option><option value="phone">Phone</option><option value="tablet">Tablet</option>
+            <option value="badge">Badge</option><option value="key">Key</option><option value="key_fob">Key Fob</option>
+            <option value="uniform">Uniform</option><option value="vehicle">Vehicle</option>
+            <option value="medical_device">Medical Device</option><option value="pager">Pager</option><option value="other">Other</option>
+          </select>
+          <select id="eq-status-filter" onchange="loadEquipment()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
+            <option value="">All Statuses</option><option value="available">Available</option><option value="assigned">Assigned</option>
+            <option value="maintenance">Maintenance</option><option value="retired">Retired</option>
+          </select>
+          <button class="btn btn-primary" onclick="openEqForm()">+ Add Equipment</button>
+        </div>
+      </div>
+      <div class="page">
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table><thead><tr><th>Name</th><th>Type</th><th>Asset Tag</th><th>Serial #</th><th>Status</th><th>Assigned To</th><th>Location</th><th></th></tr></thead>
+            <tbody id="eq-tbody"><tr><td colspan="8" class="tempty">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1832,17 +2030,26 @@ function showApp() {
 
   // Role-based sidebar visibility
   const role = CU.role;
+  const showEditorOnly = () => {
+    document.querySelectorAll('.editor-only').forEach(el => {
+      el.style.display = el.classList.contains('nav-section') ? 'block' : 'flex';
+    });
+  };
   if (role === 'admin') {
     document.querySelectorAll('.admin-only').forEach(el => {
       el.style.display = el.id === 'admin-nav-label' ? 'block' : 'flex';
     });
     document.querySelectorAll('.manager-only').forEach(el => { el.style.display = 'flex'; });
+    showEditorOnly();
   } else if (role === 'office_manager') {
     document.querySelectorAll('.admin-only').forEach(el => {
       if (el.id === 'nav-audit') el.style.display = 'none';
       else el.style.display = el.id === 'admin-nav-label' ? 'block' : 'flex';
     });
     document.querySelectorAll('.manager-only').forEach(el => { el.style.display = 'flex'; });
+    showEditorOnly();
+  } else if (role === 'editor') {
+    showEditorOnly();
   }
 
   loadStats();
@@ -1888,14 +2095,20 @@ function showPage(page) {
   document.getElementById('page-' + page).classList.add('on');
   const nav = document.getElementById('nav-' + page);
   if (nav) nav.classList.add('active');
-  if (page==='expiring')   loadExpiring();
-  if (page==='users')      loadUsers();
-  if (page==='audit')      { auditOffset=0; loadAudit(); }
-  if (page==='settings')   loadSettings();
-  if (page==='postings')   loadPostings();
-  if (page==='applicants') loadApplicants();
-  if (page==='hiring') loadHiringPackages();
-  if (page==='payments') loadPayments();
+  if (page==='expiring')      loadExpiring();
+  if (page==='users')         loadUsers();
+  if (page==='audit')         { auditOffset=0; loadAudit(); }
+  if (page==='settings')      loadSettings();
+  if (page==='postings')      loadPostings();
+  if (page==='applicants')    loadApplicants();
+  if (page==='hiring')        loadHiringPackages();
+  if (page==='payments')      loadPayments();
+  if (page==='disciplinary')  { loadDisciplinary(); loadDiscStats(); }
+  if (page==='training')      loadTraining();
+  if (page==='supervision')   { loadSupervision(); populateSupEmpFilter(); }
+  if (page==='offboarding')   loadOffboarding();
+  if (page==='incidents')     { loadIncidents(); loadIncStats(); }
+  if (page==='equipment')     loadEquipment();
 }
 
 // ════════════════════════════════════════════════════
@@ -4492,6 +4705,672 @@ function fmtPhone(p) {
   if (digits.length===10) return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
   return String(p);
 }
+
+// ════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════
+function fmtDate(d) { return d ? d.slice(0,10) : '—'; }
+function fmtType(t) { return t ? t.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : '—'; }
+function badge(text, cls) { return `<span class="badge badge-${cls}">${text}</span>`; }
+function discTypeBadge(t) {
+  const m = { verbal_warning:'amber', written_warning:'amber', final_warning:'red',
+    termination_warning:'red', pip:'red', counseling:'blue', performance_review:'blue', commendation:'ok' };
+  return badge(fmtType(t), m[t]||'');
+}
+function incStatusBadge(s) {
+  return badge(fmtType(s), s==='open'?'red':s==='under_review'?'amber':'ok');
+}
+function eqStatusBadge(s) {
+  return badge(fmtType(s), s==='available'?'ok':s==='assigned'?'blue':s==='maintenance'?'amber':'');
+}
+function progressBar(done, total) {
+  const pct = total ? Math.round(done/total*100) : 0;
+  const cls = pct===100?'ok':pct>50?'blue':'amber';
+  return `<div style="display:flex;align-items:center;gap:8px">
+    <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+      <div style="height:100%;width:${pct}%;background:var(--${cls});border-radius:3px;transition:width .3s"></div>
+    </div>
+    <span style="font-size:12px;color:var(--t2);white-space:nowrap">${done}/${total}</span>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════
+// DISCIPLINARY
+// ════════════════════════════════════════════════════
+async function loadDiscStats() {
+  try {
+    const s = await api('/api/disciplinary/stats');
+    document.getElementById('disc-stat-total').textContent   = s.total;
+    document.getElementById('disc-stat-open').textContent    = s.open;
+    document.getElementById('disc-stat-followup').textContent = s.followup;
+  } catch(e) {}
+}
+
+async function loadDisciplinary() {
+  const tbody  = document.getElementById('disc-tbody');
+  const search = document.getElementById('disc-search')?.value || '';
+  const type   = document.getElementById('disc-type-filter')?.value || '';
+  const resolved = document.getElementById('disc-resolved-filter')?.value || '';
+  tbody.innerHTML = '<tr><td colspan="7" class="tempty">Loading…</td></tr>';
+  try {
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (type)   params.set('type', type);
+    if (resolved !== '') params.set('resolved', resolved);
+    const rows = await api(`/api/disciplinary?${params}`);
+    if (!rows.length) { tbody.innerHTML='<tr><td colspan="7" class="tempty">No records found</td></tr>'; return; }
+    tbody.innerHTML = rows.map(r => `<tr>
+      <td><strong>${r.last_name}, ${r.first_name}</strong><br><small style="color:var(--t3)">${r.badge_number||''}</small></td>
+      <td>${discTypeBadge(r.type)}</td>
+      <td>${fmtDate(r.incident_date)}</td>
+      <td style="max-width:260px;white-space:normal">${r.description?.slice(0,120)||''}${r.description?.length>120?'…':''}</td>
+      <td>${r.follow_up_date ? `<span style="color:${r.follow_up_date<=new Date().toISOString().split('T')[0]?'var(--red)':'var(--t2)'}">${fmtDate(r.follow_up_date)}</span>` : '—'}</td>
+      <td>${r.resolved ? badge('Resolved','ok') : badge('Open','amber')}</td>
+      <td><button class="btn btn-xs btn-secondary" onclick="editDisc(${r.id})">Edit</button></td>
+    </tr>`).join('');
+  } catch(e) { tbody.innerHTML=`<tr><td colspan="7" class="tempty">${e.message}</td></tr>`; }
+}
+
+let discEditId = null;
+function openDiscForm(empId) {
+  discEditId = null;
+  showModal('Disciplinary / Performance Record', discFormHtml(empId), saveDisc);
+}
+async function editDisc(id) {
+  try {
+    const r = await api(`/api/disciplinary?resolved=&search=`);
+    // find record from list; or just show form pre-filled
+    discEditId = id;
+    showModal('Edit Record', discFormHtml(null, {}), saveDisc);
+  } catch(e) {}
+}
+function discFormHtml(empId, r={}) {
+  return `
+    <div class="grid" style="gap:12px">
+      ${!empId ? `<div class="fg"><label>Employee ID</label><input id="df-emp" type="number" value="${r?.employee_id||''}" placeholder="Employee ID (number)"></div>` : `<input type="hidden" id="df-emp" value="${empId}">`}
+      <div class="fg"><label>Type</label>
+        <select id="df-type">
+          <option value="verbal_warning" ${r?.type==='verbal_warning'?'selected':''}>Verbal Warning</option>
+          <option value="written_warning" ${r?.type==='written_warning'?'selected':''}>Written Warning</option>
+          <option value="final_warning" ${r?.type==='final_warning'?'selected':''}>Final Warning</option>
+          <option value="pip" ${r?.type==='pip'?'selected':''}>PIP</option>
+          <option value="counseling" ${r?.type==='counseling'?'selected':''}>Counseling</option>
+          <option value="performance_review" ${r?.type==='performance_review'?'selected':''}>Performance Review</option>
+          <option value="commendation" ${r?.type==='commendation'?'selected':''}>Commendation</option>
+          <option value="termination_warning" ${r?.type==='termination_warning'?'selected':''}>Termination Warning</option>
+        </select>
+      </div>
+      <div class="fg"><label>Incident Date *</label><input id="df-date" type="date" value="${r?.incident_date||''}"></div>
+      <div class="fg"><label>Description *</label><textarea id="df-desc" rows="3" style="width:100%;resize:vertical">${r?.description||''}</textarea></div>
+      <div class="fg"><label>Action Taken</label><textarea id="df-action" rows="2" style="width:100%;resize:vertical">${r?.action_taken||''}</textarea></div>
+      <div class="fg"><label>Follow-Up Date</label><input id="df-followup" type="date" value="${r?.follow_up_date||''}"></div>
+      <div class="fg"><label>Witness</label><input id="df-witness" value="${r?.witness||''}"></div>
+      <div class="fg" style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="df-ack" ${r?.employee_acknowledged?'checked':''}>
+        <label for="df-ack" style="font-weight:400;margin:0">Employee acknowledged</label>
+      </div>
+      ${discEditId ? `<div class="fg" style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="df-resolved" ${r?.resolved?'checked':''}>
+        <label for="df-resolved" style="font-weight:400;margin:0">Mark as resolved</label>
+      </div>` : ''}
+    </div>`;
+}
+async function saveDisc() {
+  const empId  = document.getElementById('df-emp')?.value;
+  const type   = document.getElementById('df-type')?.value;
+  const date   = document.getElementById('df-date')?.value;
+  const desc   = document.getElementById('df-desc')?.value?.trim();
+  if (!date || !desc) { alert('Date and description are required'); return; }
+  const body = { type, incident_date: date, description: desc,
+    action_taken: document.getElementById('df-action')?.value||null,
+    follow_up_date: document.getElementById('df-followup')?.value||null,
+    witness: document.getElementById('df-witness')?.value||null,
+    employee_acknowledged: document.getElementById('df-ack')?.checked ? 1 : 0,
+    resolved: document.getElementById('df-resolved')?.checked ? 1 : 0 };
+  try {
+    if (discEditId) await api(`/api/disciplinary/${discEditId}`, 'PUT', body);
+    else await api(`/api/employees/${empId}/disciplinary`, 'POST', body);
+    closeModal(); loadDisciplinary(); loadDiscStats();
+  } catch(e) { alert(e.message); }
+}
+
+// ════════════════════════════════════════════════════
+// TRAINING
+// ════════════════════════════════════════════════════
+async function loadTraining() {
+  const tbody   = document.getElementById('train-tbody');
+  const search  = document.getElementById('train-search')?.value||'';
+  const cat     = document.getElementById('train-cat-filter')?.value||'';
+  const expiring= document.getElementById('train-expiring')?.checked ? '1' : '';
+  tbody.innerHTML='<tr><td colspan="8" class="tempty">Loading…</td></tr>';
+  try {
+    const p = new URLSearchParams();
+    if (search)  p.set('search', search);
+    if (cat)     p.set('category', cat);
+    if (expiring) p.set('expiring', '1');
+    const rows = await api(`/api/training?${p}`);
+    if (!rows.length) { tbody.innerHTML='<tr><td colspan="8" class="tempty">No records</td></tr>'; return; }
+    tbody.innerHTML = rows.map(r => {
+      const today = new Date().toISOString().split('T')[0];
+      const expCls = r.expiration_date && r.expiration_date <= today ? 'color:var(--red)' : r.expiration_date && r.expiration_date <= new Date(Date.now()+60*86400000).toISOString().split('T')[0] ? 'color:var(--amber)' : '';
+      return `<tr>
+        <td><strong>${r.last_name}, ${r.first_name}</strong><br><small style="color:var(--t3)">${r.badge_number||''}</small></td>
+        <td>${r.training_name}</td>
+        <td>${r.category ? badge(fmtType(r.category),'blue') : '—'}</td>
+        <td>${r.provider||'—'}</td>
+        <td>${fmtDate(r.completion_date)}</td>
+        <td><span style="${expCls}">${fmtDate(r.expiration_date)}</span></td>
+        <td>${r.hours!=null ? r.hours+'h' : '—'}</td>
+        <td><button class="btn btn-xs btn-secondary" onclick="deleteTraining(${r.id})">Del</button></td>
+      </tr>`;
+    }).join('');
+  } catch(e) { tbody.innerHTML=`<tr><td colspan="8" class="tempty">${e.message}</td></tr>`; }
+}
+
+function openTrainForm(empId) {
+  showModal('Add Training Record', `
+    <div class="grid" style="gap:12px">
+      <div class="fg"><label>Employee ID *</label><input id="tf-emp" type="number" value="${empId||''}" placeholder="Employee ID"></div>
+      <div class="fg"><label>Training Name *</label><input id="tf-name" value=""></div>
+      <div class="fg"><label>Category</label>
+        <select id="tf-cat">
+          <option value="">Select…</option>
+          <option value="required">Required</option><option value="ceu">CEU</option>
+          <option value="certification">Certification</option><option value="safety">Safety</option>
+          <option value="compliance">Compliance</option><option value="hipaa">HIPAA</option>
+          <option value="clinical">Clinical</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="fg"><label>Provider</label><input id="tf-provider"></div>
+      <div class="fg"><label>Completion Date *</label><input id="tf-date" type="date"></div>
+      <div class="fg"><label>Expiration Date</label><input id="tf-exp" type="date"></div>
+      <div class="fg"><label>Hours</label><input id="tf-hours" type="number" step="0.5" min="0"></div>
+      <div class="fg"><label>Certificate #</label><input id="tf-cert"></div>
+      <div class="fg"><label>Notes</label><textarea id="tf-notes" rows="2" style="width:100%;resize:vertical"></textarea></div>
+    </div>`, saveTraining);
+}
+async function saveTraining() {
+  const empId = document.getElementById('tf-emp')?.value;
+  const name  = document.getElementById('tf-name')?.value?.trim();
+  const date  = document.getElementById('tf-date')?.value;
+  if (!empId || !name || !date) { alert('Employee ID, training name, and completion date are required'); return; }
+  try {
+    await api(`/api/employees/${empId}/training`, 'POST', {
+      training_name: name, category: document.getElementById('tf-cat')?.value||null,
+      provider: document.getElementById('tf-provider')?.value||null, completion_date: date,
+      expiration_date: document.getElementById('tf-exp')?.value||null,
+      hours: document.getElementById('tf-hours')?.value||null,
+      certificate_number: document.getElementById('tf-cert')?.value||null,
+      notes: document.getElementById('tf-notes')?.value||null
+    });
+    closeModal(); loadTraining();
+  } catch(e) { alert(e.message); }
+}
+async function deleteTraining(id) {
+  if (!confirm('Delete this training record?')) return;
+  try { await api(`/api/training/${id}`, 'DELETE'); loadTraining(); } catch(e) { alert(e.message); }
+}
+
+// ════════════════════════════════════════════════════
+// SUPERVISION
+// ════════════════════════════════════════════════════
+async function populateSupEmpFilter() {
+  try {
+    const emps = await api('/api/employees?status=active');
+    const sel = document.getElementById('sup-emp-filter');
+    const existing = sel.value;
+    sel.innerHTML = '<option value="">All Supervisees</option>' +
+      emps.map(e => `<option value="${e.id}" ${existing==e.id?'selected':''}>${e.last_name}, ${e.first_name}</option>`).join('');
+  } catch(e){}
+}
+
+async function loadSupervision() {
+  const tbody  = document.getElementById('sup-tbody');
+  const banner = document.getElementById('sup-hours-banner');
+  const empId  = document.getElementById('sup-emp-filter')?.value||'';
+  tbody.innerHTML='<tr><td colspan="7" class="tempty">Loading…</td></tr>';
+  try {
+    let rows, total_hours;
+    if (empId) {
+      const d = await api(`/api/employees/${empId}/supervision`);
+      rows = d.logs; total_hours = d.total_hours;
+      banner.style.display = 'block';
+      banner.innerHTML = `<strong>Total Supervision Hours:</strong> ${total_hours}h &nbsp;|&nbsp; <strong>Sessions:</strong> ${rows.length}`;
+    } else {
+      rows = await api('/api/supervision');
+      banner.style.display = 'none';
+    }
+    if (!rows.length) { tbody.innerHTML='<tr><td colspan="7" class="tempty">No sessions logged</td></tr>'; return; }
+    tbody.innerHTML = rows.map(r => `<tr>
+      <td><strong>${r.supervisee_last||r.last_name||''}, ${r.supervisee_first||r.first_name||''}</strong></td>
+      <td>${r.supervisor_name||'—'}</td>
+      <td>${fmtDate(r.session_date)}</td>
+      <td>${r.duration_minutes ? Math.floor(r.duration_minutes/60)+'h '+(r.duration_minutes%60)+'m' : '—'}</td>
+      <td>${r.modality ? badge(fmtType(r.modality),'blue') : '—'}</td>
+      <td style="max-width:220px;white-space:normal">${r.topics?.slice(0,80)||'—'}</td>
+      <td><button class="btn btn-xs btn-secondary" onclick="deleteSup(${r.id})">Del</button></td>
+    </tr>`).join('');
+  } catch(e) { tbody.innerHTML=`<tr><td colspan="7" class="tempty">${e.message}</td></tr>`; }
+}
+
+function openSupForm() {
+  showModal('Log Supervision Session', `
+    <div class="grid" style="gap:12px">
+      <div class="fg"><label>Supervisee Employee ID *</label><input id="sf-emp" type="number" placeholder="Employee ID"></div>
+      <div class="fg"><label>Supervisor Name</label><input id="sf-sup-name" placeholder="Supervisor name or leave blank for in-system"></div>
+      <div class="fg"><label>Supervisor Employee ID (if in system)</label><input id="sf-sup-id" type="number" placeholder="Optional"></div>
+      <div class="fg"><label>Session Date *</label><input id="sf-date" type="date"></div>
+      <div class="fg"><label>Duration (minutes)</label><input id="sf-dur" type="number" min="0" step="15" placeholder="e.g. 60"></div>
+      <div class="fg"><label>Modality</label>
+        <select id="sf-mod">
+          <option value="">Select…</option>
+          <option value="in_person">In Person</option><option value="telehealth">Telehealth</option>
+          <option value="group">Group</option><option value="phone">Phone</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="fg"><label>Topics Covered</label><textarea id="sf-topics" rows="2" style="width:100%;resize:vertical"></textarea></div>
+      <div class="fg"><label>Cases Reviewed</label><textarea id="sf-cases" rows="2" style="width:100%;resize:vertical"></textarea></div>
+      <div class="fg"><label>Notes</label><textarea id="sf-notes" rows="2" style="width:100%;resize:vertical"></textarea></div>
+    </div>`, saveSup);
+}
+async function saveSup() {
+  const empId = document.getElementById('sf-emp')?.value;
+  const date  = document.getElementById('sf-date')?.value;
+  if (!empId || !date) { alert('Supervisee ID and session date are required'); return; }
+  try {
+    await api(`/api/employees/${empId}/supervision`, 'POST', {
+      supervisor_name: document.getElementById('sf-sup-name')?.value||null,
+      supervisor_id: document.getElementById('sf-sup-id')?.value||null,
+      session_date: date,
+      duration_minutes: document.getElementById('sf-dur')?.value ? Number(document.getElementById('sf-dur').value) : null,
+      modality: document.getElementById('sf-mod')?.value||null,
+      topics: document.getElementById('sf-topics')?.value||null,
+      client_cases_reviewed: document.getElementById('sf-cases')?.value||null,
+      notes: document.getElementById('sf-notes')?.value||null
+    });
+    closeModal(); loadSupervision(); populateSupEmpFilter();
+  } catch(e) { alert(e.message); }
+}
+async function deleteSup(id) {
+  if (!confirm('Delete this supervision log entry?')) return;
+  try { await api(`/api/supervision/${id}`, 'DELETE'); loadSupervision(); } catch(e) { alert(e.message); }
+}
+
+// ════════════════════════════════════════════════════
+// OFFBOARDING
+// ════════════════════════════════════════════════════
+async function loadOffboarding() {
+  const tbody  = document.getElementById('offb-tbody');
+  const status = document.getElementById('offb-status-filter')?.value||'';
+  tbody.innerHTML='<tr><td colspan="7" class="tempty">Loading…</td></tr>';
+  try {
+    const p = new URLSearchParams(); if (status) p.set('status', status);
+    const rows = await api(`/api/offboarding?${p}`);
+    if (!rows.length) { tbody.innerHTML='<tr><td colspan="7" class="tempty">No offboarding packages</td></tr>'; return; }
+    tbody.innerHTML = rows.map(r => `<tr>
+      <td><strong>${r.last_name}, ${r.first_name}</strong><br><small style="color:var(--t3)">${r.badge_number||''}</small></td>
+      <td>${r.termination_type ? fmtType(r.termination_type) : '—'}</td>
+      <td>${fmtDate(r.last_day)}</td>
+      <td>${progressBar(r.done, r.total)}</td>
+      <td>${r.status==='completed' ? badge('Completed','ok') : badge('In Progress','amber')}</td>
+      <td>${r.assigned_to||'—'}</td>
+      <td><button class="btn btn-xs btn-blue" onclick="openOffbPackage(${r.id})">View</button></td>
+    </tr>`).join('');
+  } catch(e) { tbody.innerHTML=`<tr><td colspan="7" class="tempty">${e.message}</td></tr>`; }
+}
+
+function openOffbForm() {
+  showModal('Start Offboarding', `
+    <div class="grid" style="gap:12px">
+      <div class="fg"><label>Employee ID *</label><input id="ob-emp" type="number" placeholder="Employee ID"></div>
+      <div class="fg"><label>Termination Type</label>
+        <select id="ob-type">
+          <option value="">Select…</option>
+          <option value="voluntary">Voluntary</option><option value="involuntary">Involuntary</option>
+          <option value="retirement">Retirement</option><option value="contract_end">Contract End</option>
+        </select>
+      </div>
+      <div class="fg"><label>Last Day</label><input id="ob-last" type="date"></div>
+      <div class="fg"><label>Assigned To</label><input id="ob-assigned" placeholder="Staff member responsible"></div>
+    </div>`, saveOffb);
+}
+async function saveOffb() {
+  const empId = document.getElementById('ob-emp')?.value;
+  if (!empId) { alert('Employee ID is required'); return; }
+  try {
+    const d = await api('/api/offboarding', 'POST', {
+      employee_id: Number(empId),
+      termination_type: document.getElementById('ob-type')?.value||null,
+      last_day: document.getElementById('ob-last')?.value||null,
+      assigned_to: document.getElementById('ob-assigned')?.value||null
+    });
+    closeModal(); openOffbPackage(d.id);
+  } catch(e) { alert(e.message); }
+}
+
+async function openOffbPackage(id) {
+  try {
+    const pkg = await api(`/api/offboarding/${id}`);
+    const cats = [...new Set(pkg.items.map(i => i.category))];
+    let html = `<div style="margin-bottom:16px">
+      <strong>${pkg.last_name}, ${pkg.first_name}</strong> &nbsp;·&nbsp; ${fmtType(pkg.termination_type)||'N/A'} &nbsp;·&nbsp; Last Day: ${fmtDate(pkg.last_day)}<br>
+      <small style="color:var(--t3)">Progress: ${pkg.items.filter(i=>i.status!=='pending').length} / ${pkg.items.length} items</small>
+    </div>`;
+    for (const cat of cats) {
+      const catItems = pkg.items.filter(i => i.category === cat);
+      html += `<div style="margin-bottom:18px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--green);margin-bottom:8px">${cat}</div>`;
+      for (const item of catItems) {
+        const done = item.status==='completed' || item.status==='n_a';
+        html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <select data-item="${item.id}" onchange="updateOffbItem(this)" style="padding:4px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;font-family:inherit;background:${item.status==='completed'?'var(--ok-lt)':item.status==='n_a'?'var(--sf2)':'var(--surface)'}">
+            <option value="pending" ${item.status==='pending'?'selected':''}>Pending</option>
+            <option value="completed" ${item.status==='completed'?'selected':''}>Completed</option>
+            <option value="n_a" ${item.status==='n_a'?'selected':''}>N/A</option>
+          </select>
+          <span style="flex:1;${done?'color:var(--t3);text-decoration:line-through':''}">${item.item_name}${!item.required?' <small style="color:var(--t3)">(optional)</small>':''}</span>
+          ${item.completed_by ? `<small style="color:var(--t3)">${item.completed_by}</small>` : ''}
+        </div>`;
+      }
+      html += '</div>';
+    }
+    showModal(`Offboarding — ${pkg.first_name} ${pkg.last_name}`, html, null, 'Done');
+  } catch(e) { alert(e.message); }
+}
+
+async function updateOffbItem(sel) {
+  const itemId = sel.dataset.item;
+  try {
+    await api(`/api/offboarding/items/${itemId}`, 'PUT', { status: sel.value });
+    sel.style.background = sel.value==='completed'?'var(--ok-lt)':sel.value==='n_a'?'var(--sf2)':'var(--surface)';
+    loadOffboarding();
+  } catch(e) { alert(e.message); }
+}
+
+// ════════════════════════════════════════════════════
+// INCIDENTS
+// ════════════════════════════════════════════════════
+async function loadIncStats() {
+  try {
+    const s = await api('/api/incidents/stats');
+    document.getElementById('inc-stat-total').textContent = s.total;
+    document.getElementById('inc-stat-open').textContent  = s.open;
+    document.getElementById('inc-stat-osha').textContent  = s.osha;
+    document.getElementById('inc-stat-ytd').textContent   = s.ytd;
+  } catch(e){}
+}
+
+async function loadIncidents() {
+  const tbody  = document.getElementById('inc-tbody');
+  const search = document.getElementById('inc-search')?.value||'';
+  const type   = document.getElementById('inc-type-filter')?.value||'';
+  const status = document.getElementById('inc-status-filter')?.value||'';
+  const osha   = document.getElementById('inc-osha-filter')?.checked ? '1' : '';
+  tbody.innerHTML='<tr><td colspan="8" class="tempty">Loading…</td></tr>';
+  try {
+    const p = new URLSearchParams();
+    if (search) p.set('search', search); if (type) p.set('type', type);
+    if (status) p.set('status', status); if (osha) p.set('osha', osha);
+    const rows = await api(`/api/incidents?${p}`);
+    if (!rows.length) { tbody.innerHTML='<tr><td colspan="8" class="tempty">No incidents found</td></tr>'; return; }
+    tbody.innerHTML = rows.map(r => `<tr>
+      <td><strong>${r.report_number}</strong></td>
+      <td>${fmtDate(r.incident_date)}</td>
+      <td>${badge(fmtType(r.type), r.type==='workplace_injury'||r.type==='fall'?'red':r.type==='near_miss'?'amber':'blue')}</td>
+      <td>${r.location||'—'}</td>
+      <td style="max-width:200px;white-space:normal">${r.description?.slice(0,80)||''}${r.description?.length>80?'…':''}</td>
+      <td>${r.osha_recordable ? badge('OSHA','red') : '—'}</td>
+      <td>${incStatusBadge(r.status)}</td>
+      <td><button class="btn btn-xs btn-blue" onclick="openIncDetail(${r.id})">View</button>
+          <button class="btn btn-xs btn-secondary" onclick="deleteInc(${r.id})">Del</button></td>
+    </tr>`).join('');
+  } catch(e) { tbody.innerHTML=`<tr><td colspan="8" class="tempty">${e.message}</td></tr>`; }
+}
+
+function openIncForm() {
+  showModal('New Incident Report', `
+    <div class="grid" style="gap:12px">
+      <div class="fg"><label>Incident Date *</label><input id="if-date" type="date"></div>
+      <div class="fg"><label>Incident Time</label><input id="if-time" type="time"></div>
+      <div class="fg"><label>Type *</label>
+        <select id="if-type">
+          <option value="">Select…</option>
+          <option value="workplace_injury">Workplace Injury</option><option value="near_miss">Near Miss</option>
+          <option value="patient_complaint">Patient Complaint</option><option value="property_damage">Property Damage</option>
+          <option value="security">Security</option><option value="medication_error">Medication Error</option>
+          <option value="fall">Fall</option><option value="exposure">Exposure</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="fg"><label>Location</label><input id="if-loc" placeholder="Room, building, area…"></div>
+      <div class="fg"><label>Description *</label><textarea id="if-desc" rows="3" style="width:100%;resize:vertical"></textarea></div>
+      <div class="fg"><label>Immediate Action Taken</label><textarea id="if-action" rows="2" style="width:100%;resize:vertical"></textarea></div>
+      <div class="fg" style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="if-osha"><label for="if-osha" style="font-weight:400;margin:0">OSHA Recordable</label>
+      </div>
+      <div class="fg"><label>Involved Employee ID(s)</label><input id="if-involved" placeholder="Comma-separated employee IDs (optional)"></div>
+    </div>`, saveInc);
+}
+async function saveInc() {
+  const date = document.getElementById('if-date')?.value;
+  const type = document.getElementById('if-type')?.value;
+  const desc = document.getElementById('if-desc')?.value?.trim();
+  if (!date || !type || !desc) { alert('Date, type, and description are required'); return; }
+  const involvedIds = (document.getElementById('if-involved')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const involved = involvedIds.map(id => ({ employee_id: Number(id), role: 'involved' }));
+  try {
+    await api('/api/incidents', 'POST', {
+      incident_date: date, incident_time: document.getElementById('if-time')?.value||null,
+      type, location: document.getElementById('if-loc')?.value||null, description: desc,
+      immediate_action: document.getElementById('if-action')?.value||null,
+      osha_recordable: document.getElementById('if-osha')?.checked ? 1 : 0,
+      involved
+    });
+    closeModal(); loadIncidents(); loadIncStats();
+  } catch(e) { alert(e.message); }
+}
+
+async function openIncDetail(id) {
+  try {
+    const r = await api(`/api/incidents/${id}`);
+    const html = `
+      <div class="grid" style="gap:8px;font-size:13px">
+        <div><strong>Report #:</strong> ${r.report_number} &nbsp; <strong>Status:</strong> ${fmtType(r.status)}</div>
+        <div><strong>Date:</strong> ${fmtDate(r.incident_date)} ${r.incident_time||''} &nbsp; <strong>Location:</strong> ${r.location||'—'}</div>
+        <div><strong>Type:</strong> ${fmtType(r.type)} &nbsp; <strong>OSHA Recordable:</strong> ${r.osha_recordable ? 'Yes' : 'No'}</div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:4px 0">
+        <div><strong>Description:</strong><br>${r.description}</div>
+        ${r.immediate_action ? `<div><strong>Immediate Action:</strong><br>${r.immediate_action}</div>` : ''}
+        ${r.root_cause ? `<div><strong>Root Cause:</strong><br>${r.root_cause}</div>` : ''}
+        ${r.corrective_action ? `<div><strong>Corrective Action:</strong><br>${r.corrective_action}</div>` : ''}
+        ${r.involved?.length ? `<div><strong>Involved:</strong> ${r.involved.map(i=>i.employee_name||`EMP#${i.employee_id}`).join(', ')}</div>` : ''}
+        <hr style="border:none;border-top:1px solid var(--border);margin:4px 0">
+        <div class="fg"><label>Update Status</label>
+          <select id="inc-det-status">
+            <option value="open" ${r.status==='open'?'selected':''}>Open</option>
+            <option value="under_review" ${r.status==='under_review'?'selected':''}>Under Review</option>
+            <option value="closed" ${r.status==='closed'?'selected':''}>Closed</option>
+          </select>
+        </div>
+        <div class="fg"><label>Root Cause</label><textarea id="inc-det-root" rows="2" style="width:100%;resize:vertical">${r.root_cause||''}</textarea></div>
+        <div class="fg"><label>Corrective Action</label><textarea id="inc-det-ca" rows="2" style="width:100%;resize:vertical">${r.corrective_action||''}</textarea></div>
+      </div>`;
+    showModal(`Incident — ${r.report_number}`, html, async () => {
+      try {
+        await api(`/api/incidents/${id}`, 'PUT', {
+          status: document.getElementById('inc-det-status')?.value,
+          root_cause: document.getElementById('inc-det-root')?.value||null,
+          corrective_action: document.getElementById('inc-det-ca')?.value||null
+        });
+        loadIncidents(); loadIncStats();
+      } catch(e) { alert(e.message); }
+    });
+  } catch(e) { alert(e.message); }
+}
+
+async function deleteInc(id) {
+  if (!confirm('Delete this incident report?')) return;
+  try { await api(`/api/incidents/${id}`, 'DELETE'); loadIncidents(); loadIncStats(); } catch(e) { alert(e.message); }
+}
+
+// ════════════════════════════════════════════════════
+// EQUIPMENT
+// ════════════════════════════════════════════════════
+async function loadEquipment() {
+  const tbody  = document.getElementById('eq-tbody');
+  const search = document.getElementById('eq-search')?.value||'';
+  const type   = document.getElementById('eq-type-filter')?.value||'';
+  const status = document.getElementById('eq-status-filter')?.value||'';
+  tbody.innerHTML='<tr><td colspan="8" class="tempty">Loading…</td></tr>';
+  try {
+    const p = new URLSearchParams();
+    if (search) p.set('search', search); if (type) p.set('type', type); if (status) p.set('status', status);
+    const rows = await api(`/api/equipment?${p}`);
+    if (!rows.length) { tbody.innerHTML='<tr><td colspan="8" class="tempty">No equipment found</td></tr>'; return; }
+    tbody.innerHTML = rows.map(r => `<tr>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.type ? badge(fmtType(r.type),'blue') : '—'}</td>
+      <td>${r.asset_tag||'—'}</td>
+      <td>${r.serial_number||'—'}</td>
+      <td>${eqStatusBadge(r.status)}</td>
+      <td>${r.assigned_first ? `${r.assigned_last}, ${r.assigned_first}` : '—'}</td>
+      <td>${r.location||'—'}</td>
+      <td>
+        ${r.status==='assigned'
+          ? `<button class="btn btn-xs btn-secondary" onclick="returnEq(${r.id})">Return</button>`
+          : `<button class="btn btn-xs btn-blue" onclick="assignEq(${r.id})">Assign</button>`}
+        <button class="btn btn-xs btn-secondary" onclick="deleteEq(${r.id})">Del</button>
+      </td>
+    </tr>`).join('');
+  } catch(e) { tbody.innerHTML=`<tr><td colspan="8" class="tempty">${e.message}</td></tr>`; }
+}
+
+function openEqForm() {
+  showModal('Add Equipment', `
+    <div class="grid" style="gap:12px">
+      <div class="fg"><label>Name *</label><input id="eqf-name" placeholder="e.g. MacBook Pro 14"></div>
+      <div class="fg"><label>Type</label>
+        <select id="eqf-type">
+          <option value="">Select…</option>
+          <option value="laptop">Laptop</option><option value="phone">Phone</option><option value="tablet">Tablet</option>
+          <option value="badge">Badge</option><option value="key">Key</option><option value="key_fob">Key Fob</option>
+          <option value="uniform">Uniform</option><option value="vehicle">Vehicle</option>
+          <option value="medical_device">Medical Device</option><option value="pager">Pager</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="fg"><label>Asset Tag</label><input id="eqf-tag"></div>
+      <div class="fg"><label>Serial #</label><input id="eqf-serial"></div>
+      <div class="fg"><label>Location</label><input id="eqf-loc" placeholder="Storage room, office…"></div>
+      <div class="fg"><label>Purchase Date</label><input id="eqf-pdate" type="date"></div>
+      <div class="fg"><label>Warranty Expiration</label><input id="eqf-warranty" type="date"></div>
+      <div class="fg"><label>Notes</label><textarea id="eqf-notes" rows="2" style="width:100%;resize:vertical"></textarea></div>
+    </div>`, saveEq);
+}
+async function saveEq() {
+  const name = document.getElementById('eqf-name')?.value?.trim();
+  if (!name) { alert('Name is required'); return; }
+  try {
+    await api('/api/equipment', 'POST', {
+      name, type: document.getElementById('eqf-type')?.value||null,
+      asset_tag: document.getElementById('eqf-tag')?.value||null,
+      serial_number: document.getElementById('eqf-serial')?.value||null,
+      location: document.getElementById('eqf-loc')?.value||null,
+      purchase_date: document.getElementById('eqf-pdate')?.value||null,
+      warranty_expiration: document.getElementById('eqf-warranty')?.value||null,
+      notes: document.getElementById('eqf-notes')?.value||null
+    });
+    closeModal(); loadEquipment();
+  } catch(e) { alert(e.message); }
+}
+
+function assignEq(eqId) {
+  showModal('Assign Equipment', `
+    <div class="grid" style="gap:12px">
+      <div class="fg"><label>Employee ID *</label><input id="aq-emp" type="number" placeholder="Employee ID"></div>
+      <div class="fg"><label>Assigned Date</label><input id="aq-date" type="date" value="${new Date().toISOString().split('T')[0]}"></div>
+      <div class="fg"><label>Condition</label>
+        <select id="aq-cond"><option value="">Select…</option><option value="new">New</option><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option></select>
+      </div>
+      <div class="fg"><label>Notes</label><input id="aq-notes"></div>
+    </div>`, async () => {
+    const empId = document.getElementById('aq-emp')?.value;
+    if (!empId) { alert('Employee ID is required'); return; }
+    try {
+      await api(`/api/equipment/${eqId}/assign`, 'POST', {
+        employee_id: Number(empId),
+        assigned_date: document.getElementById('aq-date')?.value,
+        condition_out: document.getElementById('aq-cond')?.value||null,
+        notes: document.getElementById('aq-notes')?.value||null
+      });
+      closeModal(); loadEquipment();
+    } catch(e) { alert(e.message); }
+  });
+}
+
+async function returnEq(eqId) {
+  if (!confirm('Mark this equipment as returned?')) return;
+  try {
+    await api(`/api/equipment/${eqId}/return`, 'POST', {
+      returned_date: new Date().toISOString().split('T')[0], condition_in: 'good'
+    });
+    loadEquipment();
+  } catch(e) { alert(e.message); }
+}
+
+async function deleteEq(id) {
+  if (!confirm('Delete this equipment record?')) return;
+  try { await api(`/api/equipment/${id}`, 'DELETE'); loadEquipment(); } catch(e) { alert(e.message); }
+}
+
+// ════════════════════════════════════════════════════
+// MODAL (generic reusable)
+// ════════════════════════════════════════════════════
+let _modalCb = null;
+function showModal(title, bodyHtml, onSave, saveLabel='Save') {
+  _modalCb = onSave;
+  let m = document.getElementById('_generic-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = '_generic-modal';
+    m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    m.innerHTML=`<div style="background:var(--surface);border-radius:var(--r);padding:28px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;box-shadow:var(--sh-lg)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h3 id="_m-title" style="font-size:16px;font-weight:600"></h3>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--t2);line-height:1">&times;</button>
+      </div>
+      <div id="_m-body"></div>
+      <div id="_m-footer" style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button id="_m-save" class="btn btn-primary" onclick="if(_modalCb)_modalCb()"></button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  document.getElementById('_m-title').textContent = title;
+  document.getElementById('_m-body').innerHTML    = bodyHtml;
+  const saveBtn = document.getElementById('_m-save');
+  saveBtn.textContent = saveLabel;
+  saveBtn.style.display = onSave ? '' : 'none';
+  document.getElementById('_m-footer').querySelector('.btn-secondary').textContent = onSave ? 'Cancel' : 'Close';
+  m.style.display = 'flex';
+}
+function closeModal() {
+  const m = document.getElementById('_generic-modal');
+  if (m) m.style.display = 'none';
+  _modalCb = null;
+}
+
+// CSS for badges (injected once)
+(function() {
+  const s = document.createElement('style');
+  s.textContent = `
+    .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+    .badge-ok{background:var(--ok-lt);color:var(--ok)}
+    .badge-amber{background:var(--amber-lt);color:var(--amber)}
+    .badge-red{background:var(--red-lt);color:var(--red)}
+    .badge-blue{background:var(--blue-lt);color:var(--blue)}
+    .badge-{background:var(--sf2);color:var(--t2)}
+  `;
+  document.head.appendChild(s);
+})();
 
 function togglePw(id, btn) {
   const inp = document.getElementById(id);
