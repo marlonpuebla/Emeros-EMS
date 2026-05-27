@@ -4,7 +4,7 @@ services:
     container_name: emeros-ems
     restart: unless-stopped
     ports:
-      - "3001:3001"          # Change left side to remap, e.g. "8080:3001"
+      - "3002:3001"          # Host:Container — app listens on 3001 inside, exposed as 3002 outside
     volumes:
       # Persist the SQLite database, uploads, and config between container restarts.
       # The ./data folder is created automatically on first run.
