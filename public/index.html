@@ -5172,94 +5172,114 @@ function printInc(id) { window.open(`/api/incidents/${id}/print`, '_blank'); }
 
 function openIncForm() {
   showModal('New Incident Report', `
-    <div class="grid" style="gap:11px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
-        <div class="fg"><label>Incident Date *</label><input id="if-date" type="date"></div>
-        <div class="fg"><label>Incident Time</label><input id="if-time" type="time"></div>
-      </div>
-      <div class="fg"><label>Type *</label>
-        <select id="if-type" onchange="incTypeChanged()">
-          <option value="">Select…</option>
-          <option value="workplace_injury">Workplace Injury</option>
-          <option value="near_miss">Near Miss</option>
-          <option value="fall">Fall</option>
-          <option value="medication_error">Medication Error</option>
-          <option value="adverse_drug_reaction">Adverse Drug Reaction</option>
-          <option value="patient_complaint">Patient Complaint</option>
-          <option value="abuse_neglect_exploitation">⚠️ Abuse / Neglect / Exploitation</option>
-          <option value="elopement">Elopement</option>
-          <option value="suicide_attempt_self_harm">Suicide Attempt / Self-Harm</option>
-          <option value="restraint_seclusion">Restraint / Seclusion</option>
-          <option value="sentinel_event">Sentinel Event</option>
-          <option value="hipaa_breach">HIPAA Breach</option>
-          <option value="property_damage">Property Damage</option>
-          <option value="security">Security</option>
-          <option value="equipment_failure">Equipment Failure</option>
-          <option value="exposure">Exposure</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <div id="if-warning" style="display:none;background:var(--red-lt);border:1px solid var(--red);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--red);font-weight:600"></div>
-      <div class="fg"><label>Severity</label>
-        <select id="if-severity">
-          <option value="">Select…</option>
-          <option value="near_miss">Near Miss (no harm reached)</option>
-          <option value="none">No Harm</option>
-          <option value="minor">Minor Harm</option>
-          <option value="moderate">Moderate Harm</option>
-          <option value="serious">Serious Harm</option>
-          <option value="death">Death</option>
-        </select>
-      </div>
-      <div class="fg"><label>Location</label><input id="if-loc" placeholder="Room, unit, building…"></div>
-      <div class="fg"><label>Description *</label><textarea id="if-desc" rows="3" style="width:100%;resize:vertical" placeholder="What happened? Be specific — who, what, when, where."></textarea></div>
-      <div class="fg"><label>Immediate Action Taken</label><textarea id="if-action" rows="2" style="width:100%;resize:vertical"></textarea></div>
+    <div class="grid" style="gap:20px">
 
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);padding-top:4px">Patient / Client</div>
-      <div style="display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:end">
-        <div class="fg" style="display:flex;align-items:center;gap:8px;padding-top:20px">
-          <input type="checkbox" id="if-patient"><label for="if-patient" style="font-weight:400;margin:0">Patient Involved</label>
+      <div>
+        <div class="fs-title">Basic Information</div>
+        <div class="grid g2" style="gap:12px;margin-top:10px">
+          <div class="fg"><label>Incident Date <span class="req">*</span></label><input id="if-date" type="date"></div>
+          <div class="fg"><label>Incident Time</label><input id="if-time" type="time"></div>
+          <div class="fg"><label>Type <span class="req">*</span></label>
+            <select id="if-type" onchange="incTypeChanged()">
+              <option value="">Select type…</option>
+              <option value="workplace_injury">Workplace Injury</option>
+              <option value="near_miss">Near Miss</option>
+              <option value="fall">Fall</option>
+              <option value="medication_error">Medication Error</option>
+              <option value="adverse_drug_reaction">Adverse Drug Reaction</option>
+              <option value="patient_complaint">Patient Complaint</option>
+              <option value="abuse_neglect_exploitation">⚠️ Abuse / Neglect / Exploitation</option>
+              <option value="elopement">Elopement</option>
+              <option value="suicide_attempt_self_harm">Suicide Attempt / Self-Harm</option>
+              <option value="restraint_seclusion">Restraint / Seclusion</option>
+              <option value="sentinel_event">Sentinel Event</option>
+              <option value="hipaa_breach">HIPAA Breach</option>
+              <option value="property_damage">Property Damage</option>
+              <option value="security">Security</option>
+              <option value="equipment_failure">Equipment Failure</option>
+              <option value="exposure">Exposure</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="fg"><label>Severity</label>
+            <select id="if-severity">
+              <option value="">Select…</option>
+              <option value="near_miss">Near Miss (no harm reached)</option>
+              <option value="none">No Harm</option>
+              <option value="minor">Minor Harm</option>
+              <option value="moderate">Moderate Harm</option>
+              <option value="serious">Serious Harm</option>
+              <option value="death">Death</option>
+            </select>
+          </div>
         </div>
-        <div class="fg"><label>Patient Identifier (Unit/Room — no name)</label><input id="if-patient-id" placeholder="e.g. Room 4B, Chart #1234"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
-        <div class="fg"><label>Injury Type</label><input id="if-injury" placeholder="e.g. laceration, bruise, fracture"></div>
-        <div class="fg"><label>Body Part</label><input id="if-body" placeholder="e.g. left arm, head"></div>
-      </div>
-      <div class="fg"><label>Treatment</label>
-        <select id="if-treatment">
-          <option value="">Select…</option>
-          <option value="none">None Required</option>
-          <option value="first_aid">First Aid Only</option>
-          <option value="physician_visit">Physician Visit</option>
-          <option value="er">Emergency Room</option>
-          <option value="hospitalization">Hospitalization</option>
-          <option value="death">Death</option>
-        </select>
+        <div class="fg" style="margin-top:10px"><label>Location</label><input id="if-loc" placeholder="Room, unit, building…"></div>
+        <div id="if-warning" style="display:none;background:var(--red-lt);border:1px solid #f3c0c0;border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--red);font-weight:600;margin-top:10px"></div>
       </div>
 
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);padding-top:4px">Regulatory Flags</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="if-osha"> OSHA Recordable</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="if-sentinel"> Sentinel Event</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="if-ahca"> FL AHCA Reportable</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="if-hipaa"> HIPAA Breach</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="if-dcf"> DCF Report Filed</label>
+      <div>
+        <div class="fs-title">Incident Details</div>
+        <div class="grid" style="gap:10px;margin-top:10px">
+          <div class="fg"><label>Description <span class="req">*</span></label><textarea id="if-desc" rows="3" placeholder="What happened? Be specific — who, what, when, where."></textarea></div>
+          <div class="fg"><label>Immediate Action Taken</label><textarea id="if-action" rows="2"></textarea></div>
+          <div class="fg"><label>Contributing Factors</label><textarea id="if-factors" rows="2" placeholder="Environment, communication, staffing, equipment, training…"></textarea></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="fs-title">Patient / Client</div>
+        <div class="grid" style="gap:10px;margin-top:10px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:2px 0">
+            <input type="checkbox" id="if-patient"> Patient Involved
+          </label>
+          <div class="fg"><label>Patient Identifier <span class="hint" style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(Unit/Room — no name)</span></label><input id="if-patient-id" placeholder="e.g. Room 4B, Chart #1234"></div>
+          <div class="grid g2" style="gap:12px">
+            <div class="fg"><label>Injury Type</label><input id="if-injury" placeholder="e.g. laceration, bruise, fracture"></div>
+            <div class="fg"><label>Body Part</label><input id="if-body" placeholder="e.g. left arm, head"></div>
+          </div>
+          <div class="fg"><label>Treatment</label>
+            <select id="if-treatment">
+              <option value="">Select…</option>
+              <option value="none">None Required</option>
+              <option value="first_aid">First Aid Only</option>
+              <option value="physician_visit">Physician Visit</option>
+              <option value="er">Emergency Room</option>
+              <option value="hospitalization">Hospitalization</option>
+              <option value="death">Death</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="fs-title">Regulatory Flags</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--sf2)"><input type="checkbox" id="if-osha"> OSHA Recordable</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--sf2)"><input type="checkbox" id="if-sentinel"> Sentinel Event</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--sf2)"><input type="checkbox" id="if-ahca"> FL AHCA Reportable</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--sf2)"><input type="checkbox" id="if-hipaa"> HIPAA Breach</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--sf2)"><input type="checkbox" id="if-dcf"> DCF Report Filed</label>
+        </div>
       </div>
 
       <div id="if-med-section" style="display:none">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);padding:4px 0">Medication Details (NCC MERP)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px">
+        <div class="fs-title">Medication Details (NCC MERP)</div>
+        <div class="grid g3" style="gap:12px;margin-top:10px">
           <div class="fg"><label>Medication Name</label><input id="if-med-name"></div>
           <div class="fg"><label>Dose</label><input id="if-med-dose"></div>
           <div class="fg"><label>Route</label><input id="if-med-route" placeholder="PO, IV, IM…"></div>
         </div>
       </div>
 
-      <div class="fg"><label>Involved Employee ID(s)</label><input id="if-involved" placeholder="Comma-separated employee IDs (optional)"></div>
-      <div class="fg"><label>Witnesses</label><textarea id="if-witnesses" rows="2" style="width:100%;resize:vertical" placeholder="Names and contact info of witnesses"></textarea></div>
-      <div class="fg"><label>Equipment / Device Involved</label><input id="if-equipment" placeholder="Make, model, serial number (if applicable)"></div>
-      <div class="fg"><label>Contributing Factors</label><textarea id="if-factors" rows="2" style="width:100%;resize:vertical" placeholder="Environment, communication, staffing, equipment, training…"></textarea></div>
+      <div>
+        <div class="fs-title">People & Equipment</div>
+        <div class="grid" style="gap:10px;margin-top:10px">
+          <div class="fg"><label>Involved Employee ID(s)</label><input id="if-involved" placeholder="Comma-separated employee IDs (optional)"></div>
+          <div class="fg"><label>Witnesses</label><textarea id="if-witnesses" rows="2" placeholder="Names and contact info of witnesses"></textarea></div>
+          <div class="fg"><label>Equipment / Device Involved</label><input id="if-equipment" placeholder="Make, model, serial number (if applicable)"></div>
+        </div>
+      </div>
+
     </div>`, saveInc);
 }
 
@@ -5333,52 +5353,98 @@ async function openIncDetail(id) {
   try {
     const r = await api(`/api/incidents/${id}`);
     const notifRows = (r.notifications||[]).map(n =>
-      `<tr><td>${n.notified_party}</td><td>${n.notified_at?.slice(0,16)||''}</td><td>${n.method||''}</td><td>${n.notified_by||''}</td></tr>`
+      `<tr>
+        <td style="padding:7px 10px;border-bottom:1px solid var(--border)">${n.notified_party}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--t2)">${n.notified_at?.slice(0,16)||''}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--t2)">${n.method||'—'}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid var(--border);color:var(--t2)">${n.notified_by||'—'}</td>
+      </tr>`
     ).join('');
+    const hasBadges = r.osha_recordable || r.sentinel_event || r.fl_ahca_reportable || r.hipaa_breach || r.patient_involved || r.dcf_reported;
     const html = `
-      <div style="font-size:13px">
-        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
-          <div><strong>Report #:</strong> ${r.report_number}</div>
-          <div><strong>Date:</strong> ${fmtDate(r.incident_date)} ${r.incident_time||''}</div>
-          <div><strong>Type:</strong> ${fmtType(r.type)}</div>
-          <div><strong>Severity:</strong> ${fmtType(r.severity)||'—'}</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          ${r.osha_recordable  ? badge('OSHA Recordable','red')   : ''}
-          ${r.sentinel_event   ? badge('Sentinel Event','red')    : ''}
-          ${r.fl_ahca_reportable ? badge('AHCA Reportable','amber') : ''}
-          ${r.hipaa_breach     ? badge('HIPAA Breach','amber')    : ''}
-          ${r.patient_involved ? badge('Patient Involved','blue') : ''}
-          ${r.dcf_reported     ? badge('DCF Filed','ok')          : ''}
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div class="fg"><label>Update Status</label>
-            <select id="inc-det-status">
-              <option value="open" ${r.status==='open'?'selected':''}>Open</option>
-              <option value="under_review" ${r.status==='under_review'?'selected':''}>Under Review</option>
-              <option value="closed" ${r.status==='closed'?'selected':''}>Closed</option>
-            </select>
+      <div class="grid" style="gap:20px;font-size:13px">
+
+        <div>
+          <div class="fs-title">Report Summary</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px">
+            <div class="df"><div class="df-label">Report #</div><div class="df-value" style="font-weight:600">${r.report_number}</div></div>
+            <div class="df"><div class="df-label">Date</div><div class="df-value">${fmtDate(r.incident_date)}${r.incident_time ? ' · '+r.incident_time : ''}</div></div>
+            <div class="df"><div class="df-label">Type</div><div class="df-value">${fmtType(r.type)}</div></div>
+            <div class="df"><div class="df-label">Severity</div><div class="df-value">${fmtType(r.severity)||'<span class="df-empty">—</span>'}</div></div>
           </div>
-          <div class="fg"><label>Reviewed By</label><input id="inc-det-reviewer" value="${r.reviewed_by||''}"></div>
-          ${r.fl_ahca_reportable ? `<div class="fg"><label>AHCA Reported Date</label><input id="inc-det-ahca-date" type="date" value="${r.fl_ahca_reported_date||''}"></div>` : ''}
-          ${r.hipaa_breach ? `<div class="fg"><label>HIPAA Breach Notification Date</label><input id="inc-det-hipaa-date" type="date" value="${r.hipaa_breach_date||''}"></div>` : ''}
-          ${r.dcf_reported === 0 && r.type === 'abuse_neglect_exploitation' ? `<div class="fg"><label>DCF Report Date</label><input id="inc-det-dcf-date" type="date" value="${r.dcf_reported_date||''}"></div>` : ''}
+          ${hasBadges ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+            ${r.osha_recordable    ? badge('OSHA Recordable','red')   : ''}
+            ${r.sentinel_event     ? badge('Sentinel Event','red')    : ''}
+            ${r.fl_ahca_reportable ? badge('AHCA Reportable','amber') : ''}
+            ${r.hipaa_breach       ? badge('HIPAA Breach','amber')    : ''}
+            ${r.patient_involved   ? badge('Patient Involved','blue') : ''}
+            ${r.dcf_reported       ? badge('DCF Filed','ok')          : ''}
+          </div>` : ''}
         </div>
-        <div class="fg" style="margin-bottom:10px"><label>Contributing Factors</label><textarea id="inc-det-factors" rows="2" style="width:100%;resize:vertical">${r.contributing_factors||''}</textarea></div>
-        <div class="fg" style="margin-bottom:10px"><label>Root Cause Analysis</label><textarea id="inc-det-root" rows="3" style="width:100%;resize:vertical">${r.root_cause||''}</textarea></div>
-        <div class="fg" style="margin-bottom:10px"><label>Corrective Action Plan</label><textarea id="inc-det-ca" rows="3" style="width:100%;resize:vertical">${r.corrective_action||''}</textarea></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div class="fg"><label>Follow-Up Required By</label><input id="inc-det-followup-by" value="${r.follow_up_by||''}"></div>
-          <div class="fg"><label>Follow-Up Due Date</label><input id="inc-det-followup-date" type="date" value="${r.follow_up_date||''}"></div>
+
+        <div>
+          <div class="fs-title">Case Management</div>
+          <div class="grid g2" style="gap:12px;margin-top:10px">
+            <div class="fg"><label>Status</label>
+              <select id="inc-det-status">
+                <option value="open" ${r.status==='open'?'selected':''}>Open</option>
+                <option value="under_review" ${r.status==='under_review'?'selected':''}>Under Review</option>
+                <option value="closed" ${r.status==='closed'?'selected':''}>Closed</option>
+              </select>
+            </div>
+            <div class="fg"><label>Reviewed By</label><input id="inc-det-reviewer" value="${r.reviewed_by||''}"></div>
+            ${r.fl_ahca_reportable ? `<div class="fg"><label>AHCA Reported Date</label><input id="inc-det-ahca-date" type="date" value="${r.fl_ahca_reported_date||''}"></div>` : ''}
+            ${r.hipaa_breach ? `<div class="fg"><label>HIPAA Breach Notification Date</label><input id="inc-det-hipaa-date" type="date" value="${r.hipaa_breach_date||''}"></div>` : ''}
+            ${r.dcf_reported === 0 && r.type === 'abuse_neglect_exploitation' ? `<div class="fg"><label>DCF Report Date</label><input id="inc-det-dcf-date" type="date" value="${r.dcf_reported_date||''}"></div>` : ''}
+          </div>
         </div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);margin-bottom:6px">Notification Log</div>
-        ${notifRows ? `<table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:8px"><thead><tr style="background:var(--sf2)"><th style="padding:4px 6px;border:1px solid var(--border);text-align:left">Party</th><th style="padding:4px 6px;border:1px solid var(--border);text-align:left">Date/Time</th><th style="padding:4px 6px;border:1px solid var(--border);text-align:left">Method</th><th style="padding:4px 6px;border:1px solid var(--border);text-align:left">By</th></tr></thead><tbody>${notifRows}</tbody></table>` : '<p style="font-size:12px;color:var(--t3);margin-bottom:8px">No notifications logged yet</p>'}
-        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
-          <div class="fg"><label>Notify Party</label><input id="inc-notif-party" placeholder="Physician, Family, AHCA, Law Enforcement…"></div>
-          <div class="fg"><label>Method</label><input id="inc-notif-method" placeholder="Phone, email, in-person…"></div>
-          <button class="btn btn-sm btn-secondary" onclick="addIncNotif(${r.id})">+ Log</button>
+
+        <div>
+          <div class="fs-title">Investigation & Analysis</div>
+          <div class="grid" style="gap:10px;margin-top:10px">
+            <div class="fg"><label>Contributing Factors</label><textarea id="inc-det-factors" rows="2">${r.contributing_factors||''}</textarea></div>
+            <div class="fg"><label>Root Cause Analysis</label><textarea id="inc-det-root" rows="3">${r.root_cause||''}</textarea></div>
+            <div class="fg"><label>Corrective Action Plan</label><textarea id="inc-det-ca" rows="3">${r.corrective_action||''}</textarea></div>
+          </div>
         </div>
-        <div style="margin-top:12px;text-align:right"><button class="btn btn-sm btn-secondary" onclick="printInc(${r.id});"><span>🖨</span> Print Report</button></div>
+
+        <div>
+          <div class="fs-title">Follow-Up</div>
+          <div class="grid g2" style="gap:12px;margin-top:10px">
+            <div class="fg"><label>Assigned To</label><input id="inc-det-followup-by" value="${r.follow_up_by||''}"></div>
+            <div class="fg"><label>Due Date</label><input id="inc-det-followup-date" type="date" value="${r.follow_up_date||''}"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="fs-title">Notification Log</div>
+          <div style="margin-top:10px">
+            ${notifRows
+              ? `<div style="border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px">
+                  <table style="width:100%;font-size:12px;border-collapse:collapse">
+                    <thead><tr style="background:var(--sf2)">
+                      <th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);border-bottom:1px solid var(--border)">Party</th>
+                      <th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);border-bottom:1px solid var(--border)">Date / Time</th>
+                      <th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);border-bottom:1px solid var(--border)">Method</th>
+                      <th style="padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);border-bottom:1px solid var(--border)">By</th>
+                    </tr></thead>
+                    <tbody>${notifRows}</tbody>
+                  </table>
+                </div>`
+              : '<p style="font-size:12px;color:var(--t3);margin-bottom:12px">No notifications logged yet.</p>'
+            }
+            <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
+              <div class="fg"><label>Notify Party</label><input id="inc-notif-party" placeholder="Physician, Family, AHCA, Law Enforcement…"></div>
+              <div class="fg"><label>Method</label><input id="inc-notif-method" placeholder="Phone, email, in-person…"></div>
+              <button class="btn btn-sm btn-secondary" onclick="addIncNotif(${r.id})" style="margin-bottom:1px">+ Log</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;padding-top:4px;border-top:1px solid var(--border)">
+          <button class="btn btn-sm btn-secondary" onclick="printInc(${r.id})"><span>🖨</span> Print Report</button>
+        </div>
+
       </div>`;
     showModal(`Incident — ${r.report_number}`, html, async () => {
       try {
