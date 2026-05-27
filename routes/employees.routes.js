@@ -4,6 +4,7 @@ const fs     = require('fs');
 const multer = require('multer');
 const { auth, editorOrAbove, adminOnly, audit } = require('../middleware/auth');
 const config = require('../config');
+const { generateAccessToken } = require('../db');
 
 const photoStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, config.UPLOAD_DIR),
@@ -121,7 +122,8 @@ module.exports = function (app) {
     const fields = pickEmp(req.body);
     if (!fields.last_name || !fields.first_name)
       return res.status(400).json({ error: 'First and last name are required' });
-    fields.badge_number = nextBadgeNumber(dbGet);
+    fields.badge_number  = nextBadgeNumber(dbGet);
+    fields.access_token  = generateAccessToken();
     const cols = Object.keys(fields).join(',');
     const phs  = Object.keys(fields).map(() => '?').join(',');
     dbRun(`INSERT INTO employees (${cols}) VALUES (${phs})`, Object.values(fields));
@@ -202,8 +204,11 @@ module.exports = function (app) {
   app.put('/api/employees/:id/discharge', auth, editorOrAbove, (req, res) => {
     const date = req.body.termination_date || new Date().toISOString().split('T')[0];
     const e = dbGet('SELECT first_name, last_name FROM employees WHERE id=?', [req.params.id]);
-    dbRun("UPDATE employees SET status='discharged',termination_date=?,updated_at=? WHERE id=?",
-      [date, new Date().toISOString(), req.params.id]);
+    // Clear access_token immediately so the physical badge stops working at the door
+    dbRun(
+      "UPDATE employees SET status='discharged',termination_date=?,access_token=NULL,updated_at=? WHERE id=?",
+      [date, new Date().toISOString(), req.params.id]
+    );
     audit(req, 'DISCHARGE_EMPLOYEE', 'employees', Number(req.params.id),
       { name: `${e?.first_name} ${e?.last_name}`, termination_date: date });
     res.json({ success: true });
@@ -212,11 +217,38 @@ module.exports = function (app) {
   app.put('/api/employees/:id/reactivate', auth, editorOrAbove, (req, res) => {
     const date = req.body.rehired_date || new Date().toISOString().split('T')[0];
     const e = dbGet('SELECT first_name, last_name FROM employees WHERE id=?', [req.params.id]);
-    dbRun("UPDATE employees SET status='active',rehired_date=?,termination_date=NULL,updated_at=? WHERE id=?",
-      [date, new Date().toISOString(), req.params.id]);
+    // Issue a brand-new access token on reactivation (old token was cleared on discharge)
+    const newToken = generateAccessToken();
+    dbRun(
+      "UPDATE employees SET status='active',rehired_date=?,termination_date=NULL,access_token=?,updated_at=? WHERE id=?",
+      [date, newToken, new Date().toISOString(), req.params.id]
+    );
     audit(req, 'REACTIVATE_EMPLOYEE', 'employees', Number(req.params.id),
       { name: `${e?.first_name} ${e?.last_name}`, rehired_date: date });
     res.json({ success: true });
+  });
+
+  /* ── ROTATE ACCESS TOKEN ─────────────────────────────────
+     Invalidates the employee's current physical badge and issues
+     a new cryptographically random token. Use when:
+       - A badge is lost or stolen
+       - A contractor's access period ends
+       - A security incident occurs
+     The old barcode stops working the moment this is called.
+  ─────────────────────────────────────────────────────────── */
+  app.post('/api/employees/:id/rotate-token', auth, editorOrAbove, (req, res) => {
+    const e = dbGet('SELECT id, first_name, last_name, status FROM employees WHERE id=?', [req.params.id]);
+    if (!e) return res.status(404).json({ error: 'Employee not found' });
+    if (e.status !== 'active') return res.status(400).json({ error: 'Cannot issue a token for a non-active employee' });
+
+    const newToken = generateAccessToken();
+    dbRun('UPDATE employees SET access_token=?, updated_at=? WHERE id=?',
+      [newToken, new Date().toISOString(), req.params.id]);
+
+    audit(req, 'ROTATE_ACCESS_TOKEN', 'employees', Number(req.params.id),
+      { name: `${e.first_name} ${e.last_name}`, reason: req.body.reason || null });
+
+    res.json({ success: true, message: 'Access token rotated — reprint the ID card to issue the new badge.' });
   });
 
   /* ── STATS ──────────────────────────────────────────────── */

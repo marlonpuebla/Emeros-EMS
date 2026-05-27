@@ -28,10 +28,11 @@ module.exports = function (app) {
   // GET /api/employees/:id/idcard — printable vertical CR80 badge HTML
   app.get('/api/employees/:id/idcard', auth, (req, res) => {
     const emp = dbGet(
-      'SELECT id, first_name, last_name, badge_number, photo_url, position_ahca, position_om ' +
+      'SELECT id, first_name, last_name, badge_number, access_token, photo_url, position_ahca, position_om, status ' +
       'FROM employees WHERE id=?', [req.params.id]
     );
     if (!emp) return res.status(404).send('Employee not found');
+    if (!emp.access_token) return res.status(400).send('No access token — save the employee record first to generate one.');
 
     const orgRow = dbGet("SELECT value FROM app_settings WHERE key='org_name'");
     const logoRow = dbGet("SELECT value FROM app_settings WHERE key='org_logo_url'");
@@ -41,6 +42,10 @@ module.exports = function (app) {
     const position = emp.position_om || emp.position_ahca || '';
     const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim();
     const badge = emp.badge_number || 'EMP-????';
+    // SECURITY: the barcode encodes the access_token, NOT badge_number.
+    // access_token is 128-bit random — non-sequential and non-guessable.
+    // badge_number is only for human display.
+    const barcodePayload = emp.access_token;
 
     audit(req, 'PRINT_ID_CARD', 'employees', Number(req.params.id),
       { name: fullName, badge_number: badge });
@@ -145,11 +150,14 @@ module.exports = function (app) {
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js"></script>
   <script>
-    const BADGE = ${JSON.stringify(badge)};
+    // SECURITY: barcode encodes the cryptographic access_token, not the badge number.
+    // The badge_number (EMP-XXXX) is only shown as a human-readable label.
+    const BARCODE_PAYLOAD = ${JSON.stringify(barcodePayload)};
+    const BADGE           = ${JSON.stringify(badge)};
     const SAFE_NAME = ${JSON.stringify(fullName.replace(/[^\w]+/g, '_').replace(/^_+|_+$/g, ''))};
 
     try {
-      JsBarcode("#bc", BADGE, {
+      JsBarcode("#bc", BARCODE_PAYLOAD, {
         format: "CODE128", height: 34, margin: 0, displayValue: false, width: 1.4
       });
     } catch (e) { console.error('Barcode render failed:', e); }

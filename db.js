@@ -1,9 +1,21 @@
 'use strict';
 const fs       = require('fs');
 const path     = require('path');
+const crypto   = require('crypto');
 const initSqlJs = require('sql.js');
 const bcrypt   = require('bcryptjs');
 const { DATA_DIR, DB_PATH, UPLOAD_DIR } = require('./config');
+
+/* ─── Token generator ─────────────────────────────────────────
+   Produces a 128-bit cryptographically random access token for
+   use as barcode/QR payload on physical ID badges.
+   Format: EMS-<32 uppercase hex chars>
+   Example: EMS-A3F2B8C9D1E4F7A28B4C6D9E0F1A2B3C
+   Never sequential, never guessable, revokable per-employee.
+─────────────────────────────────────────────────────────────── */
+function generateAccessToken() {
+  return 'EMS-' + crypto.randomBytes(16).toString('hex').toUpperCase();
+}
 
 let db = null;
 let SQL = null;
@@ -71,6 +83,9 @@ async function initDb() {
   } else {
     db = new SQL.Database();
   }
+
+  /* ── WAL mode for better write concurrency ──────────────── */
+  try { db.run('PRAGMA journal_mode=WAL'); } catch (_) {}
 
   /* ── Tables ─────────────────────────────────────────────── */
   dbRun(`CREATE TABLE IF NOT EXISTS users (
@@ -325,8 +340,20 @@ async function initDb() {
     'ALTER TABLE employees ADD COLUMN pay_type TEXT',
     'ALTER TABLE employees ADD COLUMN pay_rate REAL',
     'ALTER TABLE employees ADD COLUMN pay_frequency TEXT',
+    // 003 — access token for physical badge barcodes
+    'ALTER TABLE employees ADD COLUMN access_token TEXT',
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_employees_access_token ON employees(access_token)',
   ];
   for (const sql of migrations) { try { db.run(sql); } catch (_) {} }
+
+  // Backfill access_token for any existing employees that don't have one yet
+  const noToken = db.exec("SELECT id FROM employees WHERE access_token IS NULL OR access_token = ''");
+  if (noToken.length && noToken[0].values.length) {
+    for (const [empId] of noToken[0].values) {
+      db.run('UPDATE employees SET access_token=? WHERE id=?', [generateAccessToken(), empId]);
+    }
+    console.log(`[db] Backfilled access_token for ${noToken[0].values.length} employee(s)`);
+  }
   saveDb();
 
   /* ── Seed admin ─────────────────────────────────────────── */
@@ -349,6 +376,7 @@ async function initDb() {
   console.log('[db] Ready');
   return { dbAll, dbGet, dbRun, lastInsertId, saveDb };
 }
+
 
 /* ─── Seed default settings ──────────────────────────────── */
 function seedSettings() {
@@ -751,4 +779,4 @@ function seedTemplates() {
   console.log('[db] Seeded 6 hiring package templates');
 }
 
-module.exports = { initDb, dbAll, dbGet, dbRun, lastInsertId, saveDb, reloadDb };
+module.exports = { initDb, dbAll, dbGet, dbRun, lastInsertId, saveDb, reloadDb, generateAccessToken };

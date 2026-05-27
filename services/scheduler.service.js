@@ -141,7 +141,9 @@ module.exports = function startScheduler(dbGet, dbAll, dbRun) {
           const d = emp[field];
           if (!d || d === 'N/A') continue;
           const daysUntil = Math.ceil((new Date(d) - new Date(today)) / 86400000);
-          if (d <= in30) {
+          // Bug fix: was comparing date strings (d <= in30) which breaks for non-ISO
+          // formats. Compare numeric days instead.
+          if (daysUntil <= 30) {
             alerts.push({
               name:  `${emp.last_name}, ${emp.first_name}`,
               field, date: d, days: daysUntil,

@@ -6,7 +6,35 @@ const config  = require('./config');
 const { initDb, dbAll, dbGet, dbRun, lastInsertId, saveDb, reloadDb } = require('./db');
 
 const app = express();
-app.use(cors());
+
+// ── Security headers (no Helmet dependency needed) ───────────
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// ── CORS ─────────────────────────────────────────────────────
+// Lock to specific origins via ALLOWED_ORIGIN in data/config.env.
+// If not set, all origins are allowed (safe for local/intranet use).
+if (config.ALLOWED_ORIGIN) {
+  const allowed = config.ALLOWED_ORIGIN.split(',').map(o => o.trim()).filter(Boolean);
+  app.use(cors({
+    origin: (origin, cb) => {
+      // Allow requests with no origin (same-origin, mobile apps, curl)
+      if (!origin || allowed.includes(origin)) return cb(null, true);
+      cb(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    credentials: true,
+  }));
+  console.log(`[cors] Restricted to: ${allowed.join(', ')}`);
+} else {
+  app.use(cors());
+  console.log('[cors] Open (set ALLOWED_ORIGIN in data/config.env to restrict)');
+}
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -33,6 +61,7 @@ initDb().then(() => {
   require('./routes/payroll.routes')(app);
   require('./routes/signatures.routes')(app);
   require('./routes/idcard.routes')(app);
+  require('./routes/access.routes')(app);
 
   // Start credential reminder scheduler
   const startScheduler = require('./services/scheduler.service');

@@ -18,11 +18,21 @@ const fs   = require('fs');
   } catch { /* no config.env — rely on process.env */ }
 })();
 
-const VERSION    = '2.0.0';
-const PORT       = process.env.PORT || 3001;
-const JWT_SECRET = process.env.JWT_SECRET || 'ems-change-me-in-production';
-const DATA_DIR   = path.join(__dirname, 'data');
-const DB_PATH    = path.join(DATA_DIR, 'ems.db');
-const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
+const VERSION        = '2.1.0';
+const PORT           = process.env.PORT || 3001;
+const JWT_SECRET     = process.env.JWT_SECRET || 'ems-change-me-in-production';
+const DATA_DIR       = path.join(__dirname, 'data');
+const DB_PATH        = path.join(DATA_DIR, 'ems.db');
+const UPLOAD_DIR     = path.join(DATA_DIR, 'uploads');
+// Comma-separated allowed CORS origins, e.g. "https://ems.example.com,https://ems2.example.com"
+// Leave blank to allow all origins (OK for local/intranet; restrict in production).
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '';
+// Pre-shared key required by door controllers calling GET /api/access/validate/:token.
+// Set ACCESS_API_KEY in data/config.env to enable the endpoint.
+const ACCESS_API_KEY = process.env.ACCESS_API_KEY || '';
 
-module.exports = { VERSION, PORT, JWT_SECRET, DATA_DIR, DB_PATH, UPLOAD_DIR };
+if (JWT_SECRET === 'ems-change-me-in-production') {
+  console.warn('[config] ⚠️  JWT_SECRET is the default value — set it in data/config.env before production.');
+}
+
+module.exports = { VERSION, PORT, JWT_SECRET, DATA_DIR, DB_PATH, UPLOAD_DIR, ALLOWED_ORIGIN, ACCESS_API_KEY };
