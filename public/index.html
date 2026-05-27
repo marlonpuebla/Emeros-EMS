@@ -1077,33 +1077,48 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
       <div class="topbar">
         <div class="topbar-title">Incident Reports</div>
         <div class="topbar-acts">
-          <input type="text" class="search-box" id="inc-search" placeholder="Search…" oninput="loadIncidents()" style="width:180px">
+          <input type="text" class="search-box" id="inc-search" placeholder="Search…" oninput="loadIncidents()" style="width:160px">
           <select id="inc-type-filter" onchange="loadIncidents()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
             <option value="">All Types</option>
-            <option value="workplace_injury">Workplace Injury</option><option value="near_miss">Near Miss</option>
-            <option value="patient_complaint">Patient Complaint</option><option value="property_damage">Property Damage</option>
-            <option value="security">Security</option><option value="medication_error">Medication Error</option>
-            <option value="fall">Fall</option><option value="exposure">Exposure</option><option value="other">Other</option>
+            <option value="workplace_injury">Workplace Injury</option>
+            <option value="near_miss">Near Miss</option>
+            <option value="fall">Fall</option>
+            <option value="medication_error">Medication Error</option>
+            <option value="adverse_drug_reaction">Adverse Drug Reaction</option>
+            <option value="patient_complaint">Patient Complaint</option>
+            <option value="abuse_neglect_exploitation">Abuse / Neglect / Exploitation</option>
+            <option value="elopement">Elopement</option>
+            <option value="suicide_attempt_self_harm">Suicide Attempt / Self-Harm</option>
+            <option value="restraint_seclusion">Restraint / Seclusion</option>
+            <option value="sentinel_event">Sentinel Event</option>
+            <option value="hipaa_breach">HIPAA Breach</option>
+            <option value="property_damage">Property Damage</option>
+            <option value="security">Security</option>
+            <option value="equipment_failure">Equipment Failure</option>
+            <option value="exposure">Exposure</option>
+            <option value="other">Other</option>
           </select>
           <select id="inc-status-filter" onchange="loadIncidents()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
             <option value="">All Statuses</option><option value="open">Open</option><option value="under_review">Under Review</option><option value="closed">Closed</option>
           </select>
-          <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer">
-            <input type="checkbox" id="inc-osha-filter" onchange="loadIncidents()"> OSHA Only
-          </label>
+          <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="inc-osha-filter" onchange="loadIncidents()"> OSHA</label>
+          <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="inc-sentinel-filter" onchange="loadIncidents()"> Sentinel</label>
+          <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="inc-ahca-filter" onchange="loadIncidents()"> AHCA Due</label>
           <button class="btn btn-primary" onclick="openIncForm()">+ New Report</button>
         </div>
       </div>
       <div class="page">
-        <div class="stats-row" style="grid-template-columns:repeat(4,1fr);max-width:700px;margin-bottom:20px">
+        <div class="stats-row" style="grid-template-columns:repeat(6,1fr);margin-bottom:20px">
           <div class="sc"><div class="sc-label">Total</div><div class="sc-value" id="inc-stat-total">—</div></div>
           <div class="sc amber"><div class="sc-label">Open</div><div class="sc-value" id="inc-stat-open">—</div></div>
           <div class="sc red"><div class="sc-label">OSHA Recordable</div><div class="sc-value" id="inc-stat-osha">—</div></div>
           <div class="sc ok"><div class="sc-label">YTD</div><div class="sc-value" id="inc-stat-ytd">—</div></div>
+          <div class="sc red"><div class="sc-label">Sentinel Events</div><div class="sc-value" id="inc-stat-sentinel">—</div></div>
+          <div class="sc amber"><div class="sc-label">AHCA Unreported</div><div class="sc-value" id="inc-stat-ahca">—</div></div>
         </div>
         <div class="table-wrap">
           <div class="table-scroll">
-            <table><thead><tr><th>Report #</th><th>Date</th><th>Type</th><th>Location</th><th>Description</th><th>OSHA</th><th>Status</th><th></th></tr></thead>
+            <table><thead><tr><th>Report #</th><th>Date</th><th>Type</th><th>Severity</th><th>Location</th><th>Flags</th><th>Status</th><th></th></tr></thead>
             <tbody id="inc-tbody"><tr><td colspan="8" class="tempty">Loading…</td></tr></tbody></table>
           </div>
         </div>
@@ -5089,80 +5104,226 @@ async function updateOffbItem(sel) {
 // ════════════════════════════════════════════════════
 // INCIDENTS
 // ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
+// INCIDENTS — COMPLIANCE REWRITE
+// ════════════════════════════════════════════════════
+const INC_TYPE_SEVERITY = { workplace_injury:'red', fall:'red', sentinel_event:'red',
+  abuse_neglect_exploitation:'red', suicide_attempt_self_harm:'red',
+  medication_error:'amber', adverse_drug_reaction:'amber', hipaa_breach:'amber',
+  elopement:'amber', restraint_seclusion:'amber', near_miss:'amber',
+  patient_complaint:'blue', property_damage:'blue', security:'blue',
+  equipment_failure:'blue', exposure:'blue', other:'' };
+
 async function loadIncStats() {
   try {
     const s = await api('/api/incidents/stats');
-    document.getElementById('inc-stat-total').textContent = s.total;
-    document.getElementById('inc-stat-open').textContent  = s.open;
-    document.getElementById('inc-stat-osha').textContent  = s.osha;
-    document.getElementById('inc-stat-ytd').textContent   = s.ytd;
+    document.getElementById('inc-stat-total').textContent    = s.total;
+    document.getElementById('inc-stat-open').textContent     = s.open;
+    document.getElementById('inc-stat-osha').textContent     = s.osha;
+    document.getElementById('inc-stat-ytd').textContent      = s.ytd;
+    document.getElementById('inc-stat-sentinel').textContent = s.sentinel;
+    document.getElementById('inc-stat-ahca').textContent     = s.ahca_due;
   } catch(e){}
 }
 
 async function loadIncidents() {
-  const tbody  = document.getElementById('inc-tbody');
-  const search = document.getElementById('inc-search')?.value||'';
-  const type   = document.getElementById('inc-type-filter')?.value||'';
-  const status = document.getElementById('inc-status-filter')?.value||'';
-  const osha   = document.getElementById('inc-osha-filter')?.checked ? '1' : '';
+  const tbody    = document.getElementById('inc-tbody');
+  const search   = document.getElementById('inc-search')?.value||'';
+  const type     = document.getElementById('inc-type-filter')?.value||'';
+  const status   = document.getElementById('inc-status-filter')?.value||'';
+  const osha     = document.getElementById('inc-osha-filter')?.checked ? '1' : '';
+  const sentinel = document.getElementById('inc-sentinel-filter')?.checked ? '1' : '';
+  const ahca     = document.getElementById('inc-ahca-filter')?.checked ? '1' : '';
   tbody.innerHTML='<tr><td colspan="8" class="tempty">Loading…</td></tr>';
   try {
     const p = new URLSearchParams();
-    if (search) p.set('search', search); if (type) p.set('type', type);
-    if (status) p.set('status', status); if (osha) p.set('osha', osha);
+    if (search)   p.set('search', search);   if (type)     p.set('type', type);
+    if (status)   p.set('status', status);   if (osha)     p.set('osha', osha);
+    if (sentinel) p.set('sentinel', sentinel); if (ahca)   p.set('ahca', ahca);
     const rows = await api(`/api/incidents?${p}`);
     if (!rows.length) { tbody.innerHTML='<tr><td colspan="8" class="tempty">No incidents found</td></tr>'; return; }
-    tbody.innerHTML = rows.map(r => `<tr>
-      <td><strong>${r.report_number}</strong></td>
-      <td>${fmtDate(r.incident_date)}</td>
-      <td>${badge(fmtType(r.type), r.type==='workplace_injury'||r.type==='fall'?'red':r.type==='near_miss'?'amber':'blue')}</td>
-      <td>${r.location||'—'}</td>
-      <td style="max-width:200px;white-space:normal">${r.description?.slice(0,80)||''}${r.description?.length>80?'…':''}</td>
-      <td>${r.osha_recordable ? badge('OSHA','red') : '—'}</td>
-      <td>${incStatusBadge(r.status)}</td>
-      <td><button class="btn btn-xs btn-blue" onclick="openIncDetail(${r.id})">View</button>
-          <button class="btn btn-xs btn-secondary" onclick="deleteInc(${r.id})">Del</button></td>
-    </tr>`).join('');
+    tbody.innerHTML = rows.map(r => {
+      const flags = [
+        r.osha_recordable ? `<span style="font-size:10px;font-weight:700;color:var(--red)">OSHA</span>` : '',
+        r.sentinel_event  ? `<span style="font-size:10px;font-weight:700;color:var(--red)">SENTINEL</span>` : '',
+        r.fl_ahca_reportable && !r.fl_ahca_reported_date ? `<span style="font-size:10px;font-weight:700;color:var(--amber)">AHCA DUE</span>` : '',
+        r.hipaa_breach ? `<span style="font-size:10px;font-weight:700;color:var(--amber)">HIPAA</span>` : '',
+        r.dcf_reported === 0 && r.type === 'abuse_neglect_exploitation' ? `<span style="font-size:10px;font-weight:700;color:var(--red)">DCF DUE</span>` : '',
+      ].filter(Boolean).join(' ');
+      return `<tr>
+        <td><strong>${r.report_number}</strong></td>
+        <td>${fmtDate(r.incident_date)}${r.incident_time ? '<br><small style="color:var(--t3)">'+r.incident_time+'</small>' : ''}</td>
+        <td>${badge(fmtType(r.type), INC_TYPE_SEVERITY[r.type]||'')}</td>
+        <td>${r.severity ? badge(fmtType(r.severity), r.severity==='death'||r.severity==='serious'?'red':r.severity==='moderate'||r.severity==='minor'?'amber':'') : '—'}</td>
+        <td>${r.location||'—'}</td>
+        <td style="white-space:nowrap">${flags||'—'}</td>
+        <td>${incStatusBadge(r.status)}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-xs btn-blue" onclick="openIncDetail(${r.id})">View</button>
+          <button class="btn btn-xs btn-secondary" onclick="printInc(${r.id})" title="Print">🖨</button>
+          <button class="btn btn-xs btn-secondary" onclick="deleteInc(${r.id})">Del</button>
+        </td>
+      </tr>`;
+    }).join('');
   } catch(e) { tbody.innerHTML=`<tr><td colspan="8" class="tempty">${e.message}</td></tr>`; }
 }
 
+function printInc(id) { window.open(`/api/incidents/${id}/print`, '_blank'); }
+
 function openIncForm() {
   showModal('New Incident Report', `
-    <div class="grid" style="gap:12px">
-      <div class="fg"><label>Incident Date *</label><input id="if-date" type="date"></div>
-      <div class="fg"><label>Incident Time</label><input id="if-time" type="time"></div>
+    <div class="grid" style="gap:11px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+        <div class="fg"><label>Incident Date *</label><input id="if-date" type="date"></div>
+        <div class="fg"><label>Incident Time</label><input id="if-time" type="time"></div>
+      </div>
       <div class="fg"><label>Type *</label>
-        <select id="if-type">
+        <select id="if-type" onchange="incTypeChanged()">
           <option value="">Select…</option>
-          <option value="workplace_injury">Workplace Injury</option><option value="near_miss">Near Miss</option>
-          <option value="patient_complaint">Patient Complaint</option><option value="property_damage">Property Damage</option>
-          <option value="security">Security</option><option value="medication_error">Medication Error</option>
-          <option value="fall">Fall</option><option value="exposure">Exposure</option><option value="other">Other</option>
+          <option value="workplace_injury">Workplace Injury</option>
+          <option value="near_miss">Near Miss</option>
+          <option value="fall">Fall</option>
+          <option value="medication_error">Medication Error</option>
+          <option value="adverse_drug_reaction">Adverse Drug Reaction</option>
+          <option value="patient_complaint">Patient Complaint</option>
+          <option value="abuse_neglect_exploitation">⚠️ Abuse / Neglect / Exploitation</option>
+          <option value="elopement">Elopement</option>
+          <option value="suicide_attempt_self_harm">Suicide Attempt / Self-Harm</option>
+          <option value="restraint_seclusion">Restraint / Seclusion</option>
+          <option value="sentinel_event">Sentinel Event</option>
+          <option value="hipaa_breach">HIPAA Breach</option>
+          <option value="property_damage">Property Damage</option>
+          <option value="security">Security</option>
+          <option value="equipment_failure">Equipment Failure</option>
+          <option value="exposure">Exposure</option>
+          <option value="other">Other</option>
         </select>
       </div>
-      <div class="fg"><label>Location</label><input id="if-loc" placeholder="Room, building, area…"></div>
-      <div class="fg"><label>Description *</label><textarea id="if-desc" rows="3" style="width:100%;resize:vertical"></textarea></div>
-      <div class="fg"><label>Immediate Action Taken</label><textarea id="if-action" rows="2" style="width:100%;resize:vertical"></textarea></div>
-      <div class="fg" style="display:flex;align-items:center;gap:8px">
-        <input type="checkbox" id="if-osha"><label for="if-osha" style="font-weight:400;margin:0">OSHA Recordable</label>
+      <div id="if-warning" style="display:none;background:var(--red-lt);border:1px solid var(--red);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--red);font-weight:600"></div>
+      <div class="fg"><label>Severity</label>
+        <select id="if-severity">
+          <option value="">Select…</option>
+          <option value="near_miss">Near Miss (no harm reached)</option>
+          <option value="none">No Harm</option>
+          <option value="minor">Minor Harm</option>
+          <option value="moderate">Moderate Harm</option>
+          <option value="serious">Serious Harm</option>
+          <option value="death">Death</option>
+        </select>
       </div>
+      <div class="fg"><label>Location</label><input id="if-loc" placeholder="Room, unit, building…"></div>
+      <div class="fg"><label>Description *</label><textarea id="if-desc" rows="3" style="width:100%;resize:vertical" placeholder="What happened? Be specific — who, what, when, where."></textarea></div>
+      <div class="fg"><label>Immediate Action Taken</label><textarea id="if-action" rows="2" style="width:100%;resize:vertical"></textarea></div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);padding-top:4px">Patient / Client</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:end">
+        <div class="fg" style="display:flex;align-items:center;gap:8px;padding-top:20px">
+          <input type="checkbox" id="if-patient"><label for="if-patient" style="font-weight:400;margin:0">Patient Involved</label>
+        </div>
+        <div class="fg"><label>Patient Identifier (Unit/Room — no name)</label><input id="if-patient-id" placeholder="e.g. Room 4B, Chart #1234"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+        <div class="fg"><label>Injury Type</label><input id="if-injury" placeholder="e.g. laceration, bruise, fracture"></div>
+        <div class="fg"><label>Body Part</label><input id="if-body" placeholder="e.g. left arm, head"></div>
+      </div>
+      <div class="fg"><label>Treatment</label>
+        <select id="if-treatment">
+          <option value="">Select…</option>
+          <option value="none">None Required</option>
+          <option value="first_aid">First Aid Only</option>
+          <option value="physician_visit">Physician Visit</option>
+          <option value="er">Emergency Room</option>
+          <option value="hospitalization">Hospitalization</option>
+          <option value="death">Death</option>
+        </select>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);padding-top:4px">Regulatory Flags</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="if-osha"> OSHA Recordable</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="if-sentinel"> Sentinel Event</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="if-ahca"> FL AHCA Reportable</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="if-hipaa"> HIPAA Breach</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="if-dcf"> DCF Report Filed</label>
+      </div>
+
+      <div id="if-med-section" style="display:none">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);padding:4px 0">Medication Details (NCC MERP)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px">
+          <div class="fg"><label>Medication Name</label><input id="if-med-name"></div>
+          <div class="fg"><label>Dose</label><input id="if-med-dose"></div>
+          <div class="fg"><label>Route</label><input id="if-med-route" placeholder="PO, IV, IM…"></div>
+        </div>
+      </div>
+
       <div class="fg"><label>Involved Employee ID(s)</label><input id="if-involved" placeholder="Comma-separated employee IDs (optional)"></div>
+      <div class="fg"><label>Witnesses</label><textarea id="if-witnesses" rows="2" style="width:100%;resize:vertical" placeholder="Names and contact info of witnesses"></textarea></div>
+      <div class="fg"><label>Equipment / Device Involved</label><input id="if-equipment" placeholder="Make, model, serial number (if applicable)"></div>
+      <div class="fg"><label>Contributing Factors</label><textarea id="if-factors" rows="2" style="width:100%;resize:vertical" placeholder="Environment, communication, staffing, equipment, training…"></textarea></div>
     </div>`, saveInc);
 }
+
+function incTypeChanged() {
+  const type = document.getElementById('if-type')?.value;
+  const warn = document.getElementById('if-warning');
+  const medSec = document.getElementById('if-med-section');
+  medSec.style.display = (type === 'medication_error' || type === 'adverse_drug_reaction') ? 'block' : 'none';
+  if (type === 'abuse_neglect_exploitation') {
+    warn.style.display = 'block';
+    warn.textContent = '⚠️ MANDATORY REPORT: Florida §39.201 requires reporting to DCF within 24 hours. Law enforcement may also be required.';
+    document.getElementById('if-dcf').checked = false;
+    document.getElementById('if-ahca').checked = true;
+  } else if (type === 'sentinel_event') {
+    warn.style.display = 'block';
+    warn.textContent = '⚠️ SENTINEL EVENT: Joint Commission requires notification and Root Cause Analysis. FL AHCA may also require reporting within 15 days.';
+    document.getElementById('if-sentinel').checked = true;
+    document.getElementById('if-ahca').checked = true;
+  } else if (type === 'hipaa_breach') {
+    warn.style.display = 'block';
+    warn.textContent = '⚠️ HIPAA BREACH: HIPAA Breach Notification Rule requires notification to affected individuals within 60 days. HHS OCR notification required for breaches affecting 500+ individuals.';
+    document.getElementById('if-hipaa').checked = true;
+  } else if (type === 'suicide_attempt_self_harm') {
+    warn.style.display = 'block';
+    warn.textContent = '⚠️ FL §394 (Baker Act): Document patient safety interventions. Joint Commission NPSG 15 applies. AHCA reportable if sentinel event criteria met.';
+    document.getElementById('if-ahca').checked = true;
+  } else {
+    warn.style.display = 'none';
+  }
+  // Auto-set OSHA for physical injury types
+  if (['workplace_injury','fall','exposure'].includes(type)) document.getElementById('if-osha').checked = true;
+}
+
 async function saveInc() {
   const date = document.getElementById('if-date')?.value;
   const type = document.getElementById('if-type')?.value;
   const desc = document.getElementById('if-desc')?.value?.trim();
   if (!date || !type || !desc) { alert('Date, type, and description are required'); return; }
   const involvedIds = (document.getElementById('if-involved')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const involved = involvedIds.map(id => ({ employee_id: Number(id), role: 'involved' }));
   try {
     await api('/api/incidents', 'POST', {
-      incident_date: date, incident_time: document.getElementById('if-time')?.value||null,
-      type, location: document.getElementById('if-loc')?.value||null, description: desc,
+      incident_date: date,
+      incident_time: document.getElementById('if-time')?.value||null,
+      type, severity: document.getElementById('if-severity')?.value||null,
+      location: document.getElementById('if-loc')?.value||null,
+      description: desc,
       immediate_action: document.getElementById('if-action')?.value||null,
+      patient_involved: document.getElementById('if-patient')?.checked ? 1 : 0,
+      patient_identifier: document.getElementById('if-patient-id')?.value||null,
+      injury_type: document.getElementById('if-injury')?.value||null,
+      body_part: document.getElementById('if-body')?.value||null,
+      treatment: document.getElementById('if-treatment')?.value||null,
       osha_recordable: document.getElementById('if-osha')?.checked ? 1 : 0,
-      involved
+      sentinel_event: document.getElementById('if-sentinel')?.checked ? 1 : 0,
+      fl_ahca_reportable: document.getElementById('if-ahca')?.checked ? 1 : 0,
+      hipaa_breach: document.getElementById('if-hipaa')?.checked ? 1 : 0,
+      dcf_reported: document.getElementById('if-dcf')?.checked ? 1 : 0,
+      medication_name: document.getElementById('if-med-name')?.value||null,
+      medication_dose: document.getElementById('if-med-dose')?.value||null,
+      medication_route: document.getElementById('if-med-route')?.value||null,
+      witnesses: document.getElementById('if-witnesses')?.value||null,
+      equipment_involved: document.getElementById('if-equipment')?.value||null,
+      contributing_factors: document.getElementById('if-factors')?.value||null,
+      involved: involvedIds.map(id => ({ employee_id: Number(id), role: 'involved' })),
     });
     closeModal(); loadIncidents(); loadIncStats();
   } catch(e) { alert(e.message); }
@@ -5171,43 +5332,88 @@ async function saveInc() {
 async function openIncDetail(id) {
   try {
     const r = await api(`/api/incidents/${id}`);
+    const notifRows = (r.notifications||[]).map(n =>
+      `<tr><td>${n.notified_party}</td><td>${n.notified_at?.slice(0,16)||''}</td><td>${n.method||''}</td><td>${n.notified_by||''}</td></tr>`
+    ).join('');
     const html = `
-      <div class="grid" style="gap:8px;font-size:13px">
-        <div><strong>Report #:</strong> ${r.report_number} &nbsp; <strong>Status:</strong> ${fmtType(r.status)}</div>
-        <div><strong>Date:</strong> ${fmtDate(r.incident_date)} ${r.incident_time||''} &nbsp; <strong>Location:</strong> ${r.location||'—'}</div>
-        <div><strong>Type:</strong> ${fmtType(r.type)} &nbsp; <strong>OSHA Recordable:</strong> ${r.osha_recordable ? 'Yes' : 'No'}</div>
-        <hr style="border:none;border-top:1px solid var(--border);margin:4px 0">
-        <div><strong>Description:</strong><br>${r.description}</div>
-        ${r.immediate_action ? `<div><strong>Immediate Action:</strong><br>${r.immediate_action}</div>` : ''}
-        ${r.root_cause ? `<div><strong>Root Cause:</strong><br>${r.root_cause}</div>` : ''}
-        ${r.corrective_action ? `<div><strong>Corrective Action:</strong><br>${r.corrective_action}</div>` : ''}
-        ${r.involved?.length ? `<div><strong>Involved:</strong> ${r.involved.map(i=>i.employee_name||`EMP#${i.employee_id}`).join(', ')}</div>` : ''}
-        <hr style="border:none;border-top:1px solid var(--border);margin:4px 0">
-        <div class="fg"><label>Update Status</label>
-          <select id="inc-det-status">
-            <option value="open" ${r.status==='open'?'selected':''}>Open</option>
-            <option value="under_review" ${r.status==='under_review'?'selected':''}>Under Review</option>
-            <option value="closed" ${r.status==='closed'?'selected':''}>Closed</option>
-          </select>
+      <div style="font-size:13px">
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+          <div><strong>Report #:</strong> ${r.report_number}</div>
+          <div><strong>Date:</strong> ${fmtDate(r.incident_date)} ${r.incident_time||''}</div>
+          <div><strong>Type:</strong> ${fmtType(r.type)}</div>
+          <div><strong>Severity:</strong> ${fmtType(r.severity)||'—'}</div>
         </div>
-        <div class="fg"><label>Root Cause</label><textarea id="inc-det-root" rows="2" style="width:100%;resize:vertical">${r.root_cause||''}</textarea></div>
-        <div class="fg"><label>Corrective Action</label><textarea id="inc-det-ca" rows="2" style="width:100%;resize:vertical">${r.corrective_action||''}</textarea></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          ${r.osha_recordable  ? badge('OSHA Recordable','red')   : ''}
+          ${r.sentinel_event   ? badge('Sentinel Event','red')    : ''}
+          ${r.fl_ahca_reportable ? badge('AHCA Reportable','amber') : ''}
+          ${r.hipaa_breach     ? badge('HIPAA Breach','amber')    : ''}
+          ${r.patient_involved ? badge('Patient Involved','blue') : ''}
+          ${r.dcf_reported     ? badge('DCF Filed','ok')          : ''}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div class="fg"><label>Update Status</label>
+            <select id="inc-det-status">
+              <option value="open" ${r.status==='open'?'selected':''}>Open</option>
+              <option value="under_review" ${r.status==='under_review'?'selected':''}>Under Review</option>
+              <option value="closed" ${r.status==='closed'?'selected':''}>Closed</option>
+            </select>
+          </div>
+          <div class="fg"><label>Reviewed By</label><input id="inc-det-reviewer" value="${r.reviewed_by||''}"></div>
+          ${r.fl_ahca_reportable ? `<div class="fg"><label>AHCA Reported Date</label><input id="inc-det-ahca-date" type="date" value="${r.fl_ahca_reported_date||''}"></div>` : ''}
+          ${r.hipaa_breach ? `<div class="fg"><label>HIPAA Breach Notification Date</label><input id="inc-det-hipaa-date" type="date" value="${r.hipaa_breach_date||''}"></div>` : ''}
+          ${r.dcf_reported === 0 && r.type === 'abuse_neglect_exploitation' ? `<div class="fg"><label>DCF Report Date</label><input id="inc-det-dcf-date" type="date" value="${r.dcf_reported_date||''}"></div>` : ''}
+        </div>
+        <div class="fg" style="margin-bottom:10px"><label>Contributing Factors</label><textarea id="inc-det-factors" rows="2" style="width:100%;resize:vertical">${r.contributing_factors||''}</textarea></div>
+        <div class="fg" style="margin-bottom:10px"><label>Root Cause Analysis</label><textarea id="inc-det-root" rows="3" style="width:100%;resize:vertical">${r.root_cause||''}</textarea></div>
+        <div class="fg" style="margin-bottom:10px"><label>Corrective Action Plan</label><textarea id="inc-det-ca" rows="3" style="width:100%;resize:vertical">${r.corrective_action||''}</textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div class="fg"><label>Follow-Up Required By</label><input id="inc-det-followup-by" value="${r.follow_up_by||''}"></div>
+          <div class="fg"><label>Follow-Up Due Date</label><input id="inc-det-followup-date" type="date" value="${r.follow_up_date||''}"></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);margin-bottom:6px">Notification Log</div>
+        ${notifRows ? `<table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:8px"><thead><tr style="background:var(--sf2)"><th style="padding:4px 6px;border:1px solid var(--border);text-align:left">Party</th><th style="padding:4px 6px;border:1px solid var(--border);text-align:left">Date/Time</th><th style="padding:4px 6px;border:1px solid var(--border);text-align:left">Method</th><th style="padding:4px 6px;border:1px solid var(--border);text-align:left">By</th></tr></thead><tbody>${notifRows}</tbody></table>` : '<p style="font-size:12px;color:var(--t3);margin-bottom:8px">No notifications logged yet</p>'}
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
+          <div class="fg"><label>Notify Party</label><input id="inc-notif-party" placeholder="Physician, Family, AHCA, Law Enforcement…"></div>
+          <div class="fg"><label>Method</label><input id="inc-notif-method" placeholder="Phone, email, in-person…"></div>
+          <button class="btn btn-sm btn-secondary" onclick="addIncNotif(${r.id})">+ Log</button>
+        </div>
+        <div style="margin-top:12px;text-align:right"><button class="btn btn-sm btn-secondary" onclick="printInc(${r.id});"><span>🖨</span> Print Report</button></div>
       </div>`;
     showModal(`Incident — ${r.report_number}`, html, async () => {
       try {
-        await api(`/api/incidents/${id}`, 'PUT', {
+        const body = {
           status: document.getElementById('inc-det-status')?.value,
+          reviewed_by: document.getElementById('inc-det-reviewer')?.value||null,
+          contributing_factors: document.getElementById('inc-det-factors')?.value||null,
           root_cause: document.getElementById('inc-det-root')?.value||null,
-          corrective_action: document.getElementById('inc-det-ca')?.value||null
-        });
+          corrective_action: document.getElementById('inc-det-ca')?.value||null,
+          follow_up_by: document.getElementById('inc-det-followup-by')?.value||null,
+          follow_up_date: document.getElementById('inc-det-followup-date')?.value||null,
+          follow_up_required: document.getElementById('inc-det-followup-date')?.value ? 1 : r.follow_up_required,
+        };
+        if (document.getElementById('inc-det-ahca-date'))  body.fl_ahca_reported_date = document.getElementById('inc-det-ahca-date').value||null;
+        if (document.getElementById('inc-det-hipaa-date')) body.hipaa_breach_date = document.getElementById('inc-det-hipaa-date').value||null;
+        if (document.getElementById('inc-det-dcf-date'))   { body.dcf_reported_date = document.getElementById('inc-det-dcf-date').value||null; if (body.dcf_reported_date) body.dcf_reported = 1; }
+        await api(`/api/incidents/${id}`, 'PUT', body);
         loadIncidents(); loadIncStats();
       } catch(e) { alert(e.message); }
     });
   } catch(e) { alert(e.message); }
 }
 
+async function addIncNotif(incId) {
+  const party  = document.getElementById('inc-notif-party')?.value?.trim();
+  const method = document.getElementById('inc-notif-method')?.value?.trim();
+  if (!party) { alert('Notified party is required'); return; }
+  try {
+    await api(`/api/incidents/${incId}/notifications`, 'POST', { notified_party: party, method: method||null });
+    openIncDetail(incId);
+  } catch(e) { alert(e.message); }
+}
+
 async function deleteInc(id) {
-  if (!confirm('Delete this incident report?')) return;
+  if (!confirm('Delete this incident report? This cannot be undone.')) return;
   try { await api(`/api/incidents/${id}`, 'DELETE'); loadIncidents(); loadIncStats(); } catch(e) { alert(e.message); }
 }
 
