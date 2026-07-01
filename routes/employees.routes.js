@@ -204,6 +204,7 @@ module.exports = function (app) {
   app.put('/api/employees/:id/discharge', auth, editorOrAbove, (req, res) => {
     const date = req.body.termination_date || new Date().toISOString().split('T')[0];
     const e = dbGet('SELECT first_name, last_name FROM employees WHERE id=?', [req.params.id]);
+    if (!e) return res.status(404).json({ error: 'Employee not found' });
     // Clear access_token immediately so the physical badge stops working at the door
     dbRun(
       "UPDATE employees SET status='discharged',termination_date=?,access_token=NULL,updated_at=? WHERE id=?",
@@ -217,10 +218,11 @@ module.exports = function (app) {
   app.put('/api/employees/:id/reactivate', auth, editorOrAbove, (req, res) => {
     const date = req.body.rehired_date || new Date().toISOString().split('T')[0];
     const e = dbGet('SELECT first_name, last_name FROM employees WHERE id=?', [req.params.id]);
+    if (!e) return res.status(404).json({ error: 'Employee not found' });
     // Issue a brand-new access token on reactivation (old token was cleared on discharge)
     const newToken = generateAccessToken();
     dbRun(
-      "UPDATE employees SET status='active',rehired_date=?,termination_date=NULL,access_token=?,updated_at=? WHERE id=?",
+      "UPDATE employees SET status='active',rehired_date=?,access_token=?,updated_at=? WHERE id=?",
       [date, newToken, new Date().toISOString(), req.params.id]
     );
     audit(req, 'REACTIVATE_EMPLOYEE', 'employees', Number(req.params.id),

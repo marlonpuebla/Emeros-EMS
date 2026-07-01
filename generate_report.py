@@ -134,7 +134,8 @@ def report_monthly_roster(out_path, month, year):
     conn = get_db()
     c    = conn.cursor()
 
-    # Active as-of that month: employed before end of month, not terminated before start
+    # Active as-of that month: employed before end of month and either not
+    # terminated before the month or rehired by the month end.
     month_start = f"{year:04d}-{month:02d}-01"
     last_day    = calendar.monthrange(year, month)[1]
     month_end   = f"{year:04d}-{month:02d}-{last_day:02d}"
@@ -144,9 +145,13 @@ def report_monthly_roster(out_path, month, year):
         FROM employees
         WHERE status IN ('active','discharged')
           AND (employment_date IS NULL OR employment_date <= ?)
-          AND (termination_date IS NULL OR termination_date >= ?)
+          AND (
+            termination_date IS NULL
+            OR termination_date >= ?
+            OR (rehired_date IS NOT NULL AND rehired_date <= ?)
+          )
         ORDER BY last_name, first_name
-    """, (month_end, month_start))
+    """, (month_end, month_start, month_end))
     rows = c.fetchall()
     conn.close()
 
@@ -203,6 +208,93 @@ def report_monthly_roster(out_path, month, year):
     story.append(Spacer(1, 0.15*inch))
     story.append(Paragraph(
         f"Total employees: {len(rows)}",
+        ParagraphStyle('footer_note', fontSize=8, textColor=colors.HexColor('#6b6560'),
+                        fontName='Helvetica-Oblique')))
+
+    doc.build(story, onFirstPage=hf, onLaterPages=hf)
+    return len(rows)
+
+# ═══════════════════════════════════════════════════════════
+# REPORT 1b: NEW HIRES (employees hired in a selected month)
+# ═══════════════════════════════════════════════════════════
+def report_new_hires(out_path, month, year):
+    conn = get_db()
+    c    = conn.cursor()
+
+    # Employees whose employment_date falls within the selected month,
+    # regardless of current status (a hire that month counts even if later discharged).
+    month_start = f"{year:04d}-{month:02d}-01"
+    last_day    = calendar.monthrange(year, month)[1]
+    month_end   = f"{year:04d}-{month:02d}-{last_day:02d}"
+
+    c.execute("""
+        SELECT last_name, first_name, employment_date, position_om, position_ahca,
+               employment_type, supervisor, status
+        FROM employees
+        WHERE employment_date IS NOT NULL
+          AND employment_date >= ?
+          AND employment_date <= ?
+        ORDER BY employment_date, last_name, first_name
+    """, (month_start, month_end))
+    rows = c.fetchall()
+    conn.close()
+
+    month_name  = datetime.date(year, month, 1).strftime('%B %Y')
+    doc_title   = "New Hires Report"
+    doc_sub     = month_name
+
+    doc = SimpleDocTemplate(
+        out_path, pagesize=letter,
+        leftMargin=0.5*inch, rightMargin=0.5*inch,
+        topMargin=1.4*inch, bottomMargin=1.0*inch
+    )
+
+    def hf(canvas, doc):
+        build_header_footer(canvas, doc, doc_title, doc_sub)
+
+    story  = []
+
+    style_month = ParagraphStyle('month', fontSize=11, textColor=GREEN_DARK,
+                                  fontName='Helvetica-Bold', spaceAfter=8,
+                                  alignment=TA_CENTER)
+    story.append(Paragraph(f"Employees Hired — {month_name}", style_month))
+    story.append(Paragraph(
+        f"The employees listed below were hired during {month_name}.",
+        ParagraphStyle('sub', fontSize=8, textColor=colors.HexColor('#6b6560'),
+                        spaceAfter=12, alignment=TA_CENTER)))
+
+    col_widths = [0.4*inch, 1.4*inch, 1.4*inch, 1.0*inch, 1.7*inch, 1.0*inch, 1.6*inch]
+    header     = ['#', 'LAST NAME', 'FIRST NAME', 'HIRE DATE', 'POSITION', 'TYPE', 'SUPERVISOR']
+
+    table_data = [header]
+    row_styles = []
+    for idx, row in enumerate(rows, 1):
+        table_data.append([
+            str(idx),
+            row['last_name'] or '',
+            row['first_name'] or '',
+            fmt_date(row['employment_date']),
+            row['position_om'] or row['position_ahca'] or '',
+            row['employment_type'] or '',
+            row['supervisor'] or '',
+        ])
+        # Discharged hire — gray text
+        if row['status'] == 'discharged':
+            r = len(table_data) - 1
+            row_styles.append(('TEXTCOLOR', (0, r), (-1, r), colors.HexColor('#9e9892')))
+
+    style = make_table_style()
+    for s in row_styles:
+        style.add(*s)
+    style.add('ALIGN', (0,0), (0,-1), 'CENTER')  # # column centered
+
+    t = Table(table_data, colWidths=col_widths, repeatRows=1)
+    t.setStyle(style)
+    story.append(t)
+
+    story.append(Spacer(1, 0.15*inch))
+    story.append(Paragraph(
+        f"Total new hires: {len(rows)}",
         ParagraphStyle('footer_note', fontSize=8, textColor=colors.HexColor('#6b6560'),
                         fontName='Helvetica-Oblique')))
 
@@ -449,6 +541,12 @@ if __name__ == '__main__':
             month = int(sys.argv[3]) if len(sys.argv) > 3 else datetime.date.today().month
             year  = int(sys.argv[4]) if len(sys.argv) > 4 else datetime.date.today().year
             count = report_monthly_roster(out_path, month, year)
+            print(json.dumps({'ok': True, 'count': count}))
+
+        elif rtype == 'new_hires':
+            month = int(sys.argv[3]) if len(sys.argv) > 3 else datetime.date.today().month
+            year  = int(sys.argv[4]) if len(sys.argv) > 4 else datetime.date.today().year
+            count = report_new_hires(out_path, month, year)
             print(json.dumps({'ok': True, 'count': count}))
 
         elif rtype == 'license_verification':

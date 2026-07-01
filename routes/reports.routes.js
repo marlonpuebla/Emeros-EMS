@@ -115,6 +115,18 @@ module.exports = function (app) {
     } catch (e) { if (!res.headersSent) res.status(500).json({ error: e.message }); }
   });
 
+  app.get('/api/reports/new-hires', auth, async (req, res) => {
+    const month   = parseInt(req.query.month) || (new Date().getMonth() + 1);
+    const year    = parseInt(req.query.year)  || new Date().getFullYear();
+    const outPath = path.join(os.tmpdir(), `ems_newhires_${Date.now()}.pdf`);
+    try {
+      const r = await runPython(['new_hires', outPath, String(month), String(year)]);
+      if (r.error) return res.status(500).json({ error: r.error });
+      audit(req, 'REPORT_NEW_HIRES', null, null, { month, year, count: r.count });
+      sendPdf(res, outPath, `New_Hires_${year}_${String(month).padStart(2,'0')}.pdf`);
+    } catch (e) { if (!res.headersSent) res.status(500).json({ error: e.message }); }
+  });
+
   app.get('/api/reports/license-verification', auth, async (req, res) => {
     const outPath = path.join(os.tmpdir(), `ems_license_${Date.now()}.pdf`);
     try {

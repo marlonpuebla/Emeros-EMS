@@ -1,5 +1,5 @@
-// Emeros EMS — Service Worker v2.0.0
-const CACHE_NAME = 'emeros-ems-v2.0.0';
+// Emeros EMS — Service Worker v2.0.3
+const CACHE_NAME = 'emeros-ems-v2.0.3';
 const STATIC_ASSETS = [
   '/ems/',
   '/ems/manifest.json',

@@ -539,10 +539,24 @@ async function verifyFLLicense(licenseNumber, firstName, lastName) {
     const expDate   = extractDd(html, 'License Expiration Date');
     const issDate   = extractDd(html, 'License Original Issue Date');
 
+    console.log(`[MQA] ${licenseNumber}: name="${fullName}" status="${status}" type="${licType}" exp="${expDate}" iss="${issDate}"`);
+
+    // The license number was present in the page but the detail block didn't
+    // parse — this happens when the MQA portal intermittently returns a stub /
+    // results page instead of the full provider detail. Don't record a false
+    // "unverified" for a valid license; fall back to manual verification.
+    if (!status && !fullName) {
+      return {
+        verified:     null,
+        license_number: licenseNumber,
+        error:        'FL DOH returned an incomplete record (portal may be busy)',
+        manual_url:   manualUrl,
+        instructions: 'Please verify manually at the FL DOH MQA portal.',
+      };
+    }
+
     const active = status.toUpperCase().includes('CLEAR') ||
                    status.toUpperCase().includes('ACTIVE');
-
-    console.log(`[MQA] ${licenseNumber}: name="${fullName}" status="${status}" type="${licType}" exp="${expDate}" iss="${issDate}"`);
 
     return {
       verified:       active,

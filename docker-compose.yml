@@ -17,7 +17,7 @@ services:
       #   ACCESS_API_KEY=door-controller-secret
       #   PORT=3001
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/stats"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
       interval: 30s
       timeout: 5s
       retries: 3

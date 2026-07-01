@@ -36,6 +36,14 @@ if (config.ALLOWED_ORIGIN) {
 }
 
 app.use(express.json());
+
+// ── Health check (public, no auth) ───────────────────────────
+// Used by Docker HEALTHCHECK / load balancers. Must stay unauthenticated
+// so probes don't need a token. Reports OK once the process is serving.
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', version: config.VERSION, uptime: process.uptime() });
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 initDb().then(() => {
@@ -69,6 +77,7 @@ initDb().then(() => {
   require('./routes/incidents.routes')(app);
   require('./routes/equipment.routes')(app);
   require('./routes/offboarding.routes')(app);
+  require('./routes/compliance.routes')(app);
 
   // Start credential reminder scheduler
   const startScheduler = require('./services/scheduler.service');
@@ -92,6 +101,18 @@ initDb().then(() => {
     if (req.path.startsWith('/api/'))
       return res.status(404).json({ error: 'API endpoint not found' });
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
+
+  // Global error handler — always return JSON for API routes so the browser
+  // never receives an HTML 500 page when a route handler throws.
+  // eslint-disable-next-line no-unused-vars
+  app.use((err, req, res, next) => {
+    const status = err.status || err.statusCode || 500;
+    console.error(`[error] ${req.method} ${req.path} →`, err.message || err);
+    if (req.path.startsWith('/api/')) {
+      return res.status(status).json({ error: err.message || 'Internal server error' });
+    }
+    res.status(status).sendFile(path.join(__dirname, 'public', 'index.html'));
   });
 
   app.listen(config.PORT, () => {

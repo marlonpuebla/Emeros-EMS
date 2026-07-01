@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const multer = require('multer');
 const jwt    = require('jsonwebtoken');
 const config = require('../config');
-const { auth, adminOnly, audit } = require('../middleware/auth');
+const { auth, adminOnly, managerOrAdmin, audit } = require('../middleware/auth');
 
 const logoStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, config.UPLOAD_DIR),
@@ -84,6 +84,69 @@ module.exports = function (app) {
   ═══════════════════════════════════════════════════════════ */
 
   // POST /api/settings/logo — admin uploads org logo
+  app.get('/api/employee-options', auth, (req, res) => {
+    try {
+      const { dbAll } = req.app.locals;
+      const rows = dbAll("SELECT key, value FROM app_settings WHERE key IN ('position_ahca_options','position_om_options')");
+      const settings = {};
+      for (const row of rows) settings[row.key] = row.value;
+      const parseList = (value) => {
+        try {
+          const parsed = JSON.parse(value || '[]');
+          return Array.isArray(parsed) ? parsed.filter(Boolean).map(String) : [];
+        } catch {
+          return [];
+        }
+      };
+      res.json({
+        position_ahca: parseList(settings.position_ahca_options),
+        position_om: parseList(settings.position_om_options),
+      });
+    } catch (err) {
+      console.error('[employee-options] GET error:', err);
+      res.status(500).json({ error: 'Failed to load employee options' });
+    }
+  });
+
+  app.put('/api/employee-options', auth, managerOrAdmin, (req, res) => {
+    try {
+      const { dbRun } = req.app.locals;
+      const normalize = (list) => {
+        if (!Array.isArray(list)) return [];
+        const seen = new Set();
+        return list.map(v => String(v || '').trim())
+          .filter(Boolean)
+          .filter(v => {
+            const key = v.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+      };
+      const positionAhca = normalize(req.body?.position_ahca);
+      const positionOm = normalize(req.body?.position_om);
+      const updates = {
+        position_ahca_options: JSON.stringify(positionAhca),
+        position_om_options: JSON.stringify(positionOm),
+      };
+      for (const [key, value] of Object.entries(updates)) {
+        dbRun(
+          "INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, datetime('now')) " +
+          "ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at",
+          [key, value]
+        );
+      }
+      audit(req, 'EMPLOYEE_OPTIONS_UPDATE', 'app_settings', null, {
+        position_ahca_count: positionAhca.length,
+        position_om_count: positionOm.length,
+      });
+      res.json({ ok: true, position_ahca: positionAhca, position_om: positionOm });
+    } catch (err) {
+      console.error('[employee-options] PUT error:', err);
+      res.status(500).json({ error: 'Failed to update employee options' });
+    }
+  });
+
   app.post('/api/settings/logo', auth, adminOnly,
     (req, res, next) => logoUpload.single('logo')(req, res, (err) => {
       if (err) return res.status(400).json({ error: err.message });

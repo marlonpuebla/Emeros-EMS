@@ -207,7 +207,7 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
 /* ── DETAIL PANEL ── */
 .det-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:900;display:flex;justify-content:flex-end;opacity:0;pointer-events:none;transition:opacity .2s}
 .det-overlay.open{opacity:1;pointer-events:all}
-.det-panel{width:580px;height:100vh;background:var(--surface);overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,.15);transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column}
+.det-panel{width:820px;max-width:96vw;height:100vh;background:var(--surface);overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,.15);transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column}
 .det-overlay.open .det-panel{transform:translateX(0)}
 .det-hdr{padding:24px 26px 20px;color:#fff;flex-shrink:0;position:relative}
 .det-hdr.status-active{background:linear-gradient(135deg,var(--green),var(--green2))}
@@ -227,6 +227,36 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
 .df-value{font-size:13px;color:var(--text);display:flex;align-items:center;gap:4px}
 .df-empty{color:var(--t3);font-style:italic;font-size:12px}
 .df-note{font-size:11px;color:var(--t2);font-style:italic;margin-top:1px}
+/* ── Detail chart: vertical (left) tabs ─────────────────── */
+.det-tabwrap{display:flex;flex:1;min-height:0}
+.det-vtabs{flex-shrink:0;width:150px;background:var(--sf2);border-right:1px solid var(--border);padding:14px 0;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
+.det-vtab{padding:11px 16px;font-size:12.5px;font-weight:600;color:var(--t2);cursor:pointer;border-left:3px solid transparent;transition:all .15s;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.det-vtab:hover{color:var(--text);background:var(--surface)}
+.det-vtab.active{color:var(--green);border-left-color:var(--green);background:var(--surface)}
+.det-vtab .vtab-count{margin-left:auto;font-size:9px;font-weight:700;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;line-height:1.6}
+.det-vpanel{flex:1;overflow-y:auto;padding:20px 24px}
+.det-vtab-panel{display:none}.det-vtab-panel.active{display:block}
+/* compliance banner */
+.det-banner{border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12.5px;line-height:1.5}
+.det-banner.ok{background:var(--green-lt);color:var(--green)}
+.det-banner.warn{background:var(--amber-lt);color:#7a4e10}
+.det-banner.danger{background:var(--red-lt);color:var(--red)}
+.det-banner b{font-weight:700}
+/* header photo */
+.det-photo{width:64px;height:64px;border-radius:10px;border:2px solid rgba(255,255,255,.55);background:rgba(255,255,255,.15) center/cover no-repeat;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff}
+/* required-docs checklist */
+.det-doc-chk{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:5px 0}
+.det-doc-chk .ck{width:16px;height:16px;flex-shrink:0}
+/* ── Edit modal: vertical (left) tabs ───────────────────── */
+#emp-modal .modal{display:flex;flex-direction:column;max-height:92vh;max-width:1040px}
+#emp-modal .modal-hdr{flex-shrink:0}
+#emp-modal #emp-form{display:flex;flex:1;min-height:0;overflow:hidden}
+#emp-modal .modal-body{flex:1;overflow-y:auto;min-height:0}
+#emp-modal .modal-footer{flex-shrink:0}
+.emp-vtabs{flex-shrink:0;width:164px;background:var(--sf2);border-right:1px solid var(--border);padding:12px 0;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
+.emp-vtab{padding:11px 16px;font-size:12.5px;font-weight:600;color:var(--t2);cursor:pointer;border-left:3px solid transparent;transition:all .15s;white-space:nowrap}
+.emp-vtab:hover{color:var(--text);background:var(--surface)}
+.emp-vtab.active{color:var(--green);border-left-color:var(--green);background:var(--surface)}
 .exp-ok{color:var(--ok);font-weight:500}
 .exp-warn{color:var(--amber);font-weight:600}
 .exp-danger{color:var(--red);font-weight:700}
@@ -391,6 +421,9 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
       <div class="nav-item editor-only" id="nav-offboarding" onclick="showPage('offboarding')" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>Offboarding
       </div>
+      <div class="nav-item editor-only" id="nav-compliance" onclick="showPage('compliance')" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>Compliance
+      </div>
       <div class="nav-section editor-only" style="display:none">Safety &amp; Assets</div>
       <div class="nav-item editor-only" id="nav-incidents" onclick="showPage('incidents')" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Incident Reports
@@ -514,7 +547,7 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
           <div class="rpt-card">
             <div class="rpt-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
             <div class="rpt-title">Monthly Employee Roster</div>
-            <div class="rpt-desc">Signature roster for employees active during the selected month. Only employees hired before month-end and not yet terminated are included. Blank signature line per row.</div>
+            <div class="rpt-desc">Signature roster for employees active during the selected month, including employees rehired by month-end. Blank signature line per row.</div>
             <div class="month-row">
               <select id="rpt-month">
                 <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
@@ -522,6 +555,22 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
               <input type="number" id="rpt-year" style="width:84px" min="2015" max="2035">
             </div>
             <button class="btn btn-primary btn-sm" onclick="dlReport('monthly-roster')">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download PDF
+            </button>
+          </div>
+
+          <div class="rpt-card">
+            <div class="rpt-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div>
+            <div class="rpt-title">New Hires Report</div>
+            <div class="rpt-desc">Employees hired during the selected month. Includes hire date, position, employment type, and supervisor. Discharged hires are shown in gray.</div>
+            <div class="month-row">
+              <select id="nh-month">
+                <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+              </select>
+              <input type="number" id="nh-year" style="width:84px" min="2015" max="2035">
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="dlReport('new-hires')">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Download PDF
             </button>
@@ -547,6 +596,16 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
             <button class="btn btn-primary btn-sm" onclick="dlReport('fingerprinting')">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Download PDF
+            </button>
+          </div>
+
+          <div class="rpt-card">
+            <div class="rpt-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="6" rx="1"/><rect x="14" y="3" width="7" height="6" rx="1"/><rect x="8.5" y="15" width="7" height="6" rx="1"/><path d="M6.5 9v3h11V9"/><path d="M12 12v3"/></svg></div>
+            <div class="rpt-title">Facility Organization Chart</div>
+            <div class="rpt-desc">View and print the active employee reporting chart using each employee's supervisor assignment.</div>
+            <button class="btn btn-primary btn-sm" onclick="showOrgChart()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="6" rx="1"/><rect x="3" y="15" width="7" height="6" rx="1"/><rect x="14" y="15" width="7" height="6" rx="1"/><path d="M12 9v3"/><path d="M6.5 15v-3h11v3"/></svg>
+              Show Chart
             </button>
           </div>
         </div>
@@ -769,6 +828,7 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
         <!-- Settings Tabs -->
         <div style="display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px;flex-wrap:wrap" id="settings-tabs">
           <div class="settings-tab active" onclick="switchSettingsTab('facility',this)" id="stab-facility">Facility</div>
+          <div class="settings-tab" onclick="switchSettingsTab('employee-lists',this)" id="stab-employee-lists">Employee Lists</div>
           <div class="settings-tab" onclick="switchSettingsTab('email',this)" id="stab-email">Email</div>
           <div class="settings-tab" onclick="switchSettingsTab('microsoft',this)" id="stab-microsoft">Microsoft Login</div>
           <div class="settings-tab" onclick="switchSettingsTab('profile',this)" id="stab-profile">My Profile</div>
@@ -811,6 +871,24 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
               <div class="fg"><label>Medical Director</label><input type="text" id="set-medical_director" placeholder="Dr. Full Name"></div>
             </div>
             <button class="btn btn-primary" onclick="saveFacilitySettings()">Save Facility Settings</button>
+          </div>
+        </div>
+
+        <!-- Tab: Employee Lists -->
+        <div class="settings-tab-panel" id="settings-panel-employee-lists">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--sh)">
+            <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--green);margin-bottom:16px">Employee Dropdown Lists</div>
+            <div class="grid g2" style="gap:14px;margin-bottom:16px">
+              <div class="fg">
+                <label>Position (AHCA)</label>
+                <textarea id="set-position_ahca_options" rows="12" style="width:100%;resize:vertical" placeholder="One option per line"></textarea>
+              </div>
+              <div class="fg">
+                <label>Position</label>
+                <textarea id="set-position_om_options" rows="12" style="width:100%;resize:vertical" placeholder="One option per line"></textarea>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveEmployeeOptions()">Save Employee Lists</button>
           </div>
         </div>
 
@@ -1069,6 +1147,91 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
             <tbody id="offb-tbody"><tr><td colspan="7" class="tempty">Loading…</td></tr></tbody></table>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ COMPLIANCE ═══════════════ -->
+    <div class="pw" id="page-compliance">
+      <div class="topbar">
+        <div class="topbar-title">Compliance Tracker</div>
+        <div class="topbar-acts">
+          <div style="display:flex;gap:4px;background:var(--sf2);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px">
+            <button id="ctab-dashboard" class="btn btn-sm" onclick="switchCompTab('dashboard')" style="background:var(--green);color:#fff">Dashboard</button>
+            <button id="ctab-records"   class="btn btn-sm btn-secondary" onclick="switchCompTab('records')">Records</button>
+            <button id="ctab-reqs"      class="btn btn-sm btn-secondary" onclick="switchCompTab('reqs')">Requirements</button>
+          </div>
+        </div>
+      </div>
+      <div class="page">
+
+        <!-- DASHBOARD TAB -->
+        <div id="comp-tab-dashboard">
+          <div class="stats-row" style="grid-template-columns:repeat(6,1fr);margin-bottom:20px">
+            <div class="sc"><div class="sc-label">Requirements</div><div class="sc-value" id="comp-stat-reqs">—</div></div>
+            <div class="sc ok"><div class="sc-label">Compliant Records</div><div class="sc-value" id="comp-stat-compliant">—</div></div>
+            <div class="sc red"><div class="sc-label">Expired</div><div class="sc-value" id="comp-stat-expired">—</div></div>
+            <div class="sc amber"><div class="sc-label">Expiring in 30d</div><div class="sc-value" id="comp-stat-exp30">—</div></div>
+            <div class="sc amber"><div class="sc-label">Expiring in 60d</div><div class="sc-value" id="comp-stat-exp60">—</div></div>
+            <div class="sc"><div class="sc-label">Declined</div><div class="sc-value" id="comp-stat-declined">—</div></div>
+          </div>
+          <div class="table-wrap">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--sf2);display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--t2)">Employee Compliance Summary</span>
+              <input type="text" class="search-box" id="comp-dash-search" placeholder="Search employees…" oninput="renderCompDash()" style="width:180px">
+            </div>
+            <div class="table-scroll">
+              <table><thead><tr><th>Employee</th><th>Position</th><th>Requirements</th><th>Met</th><th>Expired</th><th>Expiring 60d</th><th>Status</th><th></th></tr></thead>
+              <tbody id="comp-dash-tbody"><tr><td colspan="8" class="tempty">Loading…</td></tr></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECORDS TAB -->
+        <div id="comp-tab-records" style="display:none">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+            <input type="text" class="search-box" id="comp-rec-search" placeholder="Search…" oninput="loadCompRecords()" style="width:180px">
+            <select id="comp-rec-cat" onchange="loadCompRecords()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
+              <option value="">All Categories</option>
+              <option value="vaccination">Vaccination</option>
+              <option value="certification">Certification</option>
+              <option value="training">Training</option>
+              <option value="ceu">CEU</option>
+              <option value="document">Document</option>
+            </select>
+            <select id="comp-rec-status" onchange="loadCompRecords()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;font-family:inherit">
+              <option value="">All Statuses</option>
+              <option value="compliant">Compliant</option>
+              <option value="non_compliant">Non-Compliant</option>
+              <option value="pending">Pending</option>
+              <option value="expiring">Expiring</option>
+              <option value="declined">Declined</option>
+            </select>
+            <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="checkbox" id="comp-rec-expiring" onchange="loadCompRecords()"> Expiring in 60d
+            </label>
+            <button class="btn btn-primary" onclick="openCompRecForm()">+ Add Record</button>
+          </div>
+          <div class="table-wrap">
+            <div class="table-scroll">
+              <table><thead><tr><th>Employee</th><th>Requirement</th><th>Category</th><th>Status</th><th>Completed</th><th>Expiration</th><th>Verified By</th><th></th></tr></thead>
+              <tbody id="comp-rec-tbody"><tr><td colspan="8" class="tempty">Loading…</td></tr></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- REQUIREMENTS TAB -->
+        <div id="comp-tab-reqs" style="display:none">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+            <button class="btn btn-primary manager-only" onclick="openCompReqForm()" style="display:none">+ Add Requirement</button>
+          </div>
+          <div class="table-wrap">
+            <div class="table-scroll">
+              <table><thead><tr><th>Requirement</th><th>Category</th><th>Applies To</th><th>Frequency</th><th>Can Decline</th><th>Grace (days)</th><th>Active</th><th></th></tr></thead>
+              <tbody id="comp-req-tbody"><tr><td colspan="8" class="tempty">Loading…</td></tr></tbody></table>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -1363,14 +1526,19 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
       <div><div class="modal-title" id="emp-modal-title">Add Employee</div><div class="modal-sub">Complete all relevant fields. Required fields are marked <span class="req">*</span></div></div>
       <button class="modal-close" onclick="closeEmpModal()">&times;</button>
     </div>
-    <div class="emp-tabs">
-      <div class="emp-tab active" onclick="switchEmpTab('main',this)">Profile</div>
-      <div class="emp-tab" onclick="switchEmpTab('misc',this)">Documents &amp; Notes</div>
-    </div>
-    <div class="modal-body">
     <form id="emp-form" onsubmit="saveEmployee(event)">
+      <div class="emp-vtabs">
+        <div class="emp-vtab active" onclick="switchEmpTab('personal',this)">Personal</div>
+        <div class="emp-vtab" onclick="switchEmpTab('employment',this)">Employment</div>
+        <div class="emp-vtab" onclick="switchEmpTab('credentials',this)">Credentials &amp; Pay</div>
+        <div class="emp-vtab" onclick="switchEmpTab('comptrack',this)">Compliance</div>
+        <div class="emp-vtab" onclick="switchEmpTab('compliance',this)">Compliance (*)</div>
+        <div class="emp-vtab" onclick="switchEmpTab('clinical',this)">Clinical</div>
+        <div class="emp-vtab" onclick="switchEmpTab('misc',this)">Documents &amp; Notes</div>
+      </div>
+      <div class="modal-body">
       <input type="hidden" id="f-id">
-      <div class="emp-tab-panel active" id="emp-panel-main">
+      <div class="emp-tab-panel active" id="emp-panel-personal">
       <!-- Photo & Badge -->
       <div class="fs" id="photo-badge-section" style="display:none">
         <div class="fs-title">Photo &amp; Badge</div>
@@ -1397,18 +1565,20 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
             <select id="f-gender"><option value="">— Select —</option><option>Male</option><option>Female</option><option>Non-binary</option><option>Other</option><option>Prefer not to say</option></select>
           </div>
           <div class="fg"><label>Date of Birth</label><input type="date" id="f-dob"></div>
-          <div class="fg"><label>Phone</label><input type="text" id="f-phone" placeholder="(786) 555-1234"></div>
+          <div class="fg"><label>Phone</label><input type="text" id="f-phone" placeholder="(786) 555-1234" inputmode="tel" maxlength="14" oninput="formatPhoneInput(this)"></div>
           <div class="fg"><label>Email</label><input type="email" id="f-email" placeholder="email@example.com"></div>
-          <div class="fg"><label>SSN</label><input type="text" id="f-ssn" placeholder="XXX-XX-XXXX" autocomplete="off"></div>
+          <div class="fg"><label>SSN</label><input type="text" id="f-ssn" placeholder="XXX-XX-XXXX" autocomplete="off" inputmode="numeric" maxlength="11" oninput="formatSsnInput(this)"></div>
           <div class="fg span4"><label>Address</label><input type="text" id="f-address" placeholder="Full mailing address"></div>
         </div>
       </div>
+      </div><!-- end personal panel -->
+      <div class="emp-tab-panel" id="emp-panel-employment">
       <!-- Employment -->
       <div class="fs">
         <div class="fs-title">Employment</div>
         <div class="grid g4">
           <div class="fg"><label>Hire Date <span class="req">*</span></label><input type="date" id="f-employment_date" required></div>
-          <div class="fg"><label>Position (AHCA)</label><input type="text" id="f-position_ahca" placeholder="AHCA classification"></div>
+          <div class="fg"><label>Position (AHCA)</label><select id="f-position_ahca"><option value="">Select</option></select></div>
           <div class="fg"><label>Position</label>
             <select id="f-position_om">
               <option value="">— Select —</option>
@@ -1423,7 +1593,7 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
               <option>Therapist</option><option>Other</option>
             </select>
           </div>
-          <div class="fg"><label>Supervisor</label><input type="text" id="f-supervisor" placeholder="Supervisor name"></div>
+          <div class="fg"><label>Supervisor</label><select id="f-supervisor"><option value="">Select</option></select></div>
           <div class="fg"><label>Employment Type</label>
             <select id="f-employment_type"><option value="employee">Employee</option><option value="contracted">Contracted</option><option value="subcontractor">Subcontractor</option></select>
           </div>
@@ -1443,9 +1613,11 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
         <div class="fs-title">Emergency Contact</div>
         <div class="grid g2">
           <div class="fg"><label>Contact Name</label><input type="text" id="f-emergency_contact" placeholder="Full name"></div>
-          <div class="fg"><label>Contact Phone</label><input type="text" id="f-emergency_contact_phone" placeholder="(786) 555-1234"></div>
+          <div class="fg"><label>Contact Phone</label><input type="text" id="f-emergency_contact_phone" placeholder="(786) 555-1234" inputmode="tel" maxlength="14" oninput="formatPhoneInput(this)"></div>
         </div>
       </div>
+      </div><!-- end employment panel -->
+      <div class="emp-tab-panel" id="emp-panel-credentials">
       <!-- License -->
       <div class="fs">
         <div class="fs-title">Professional License</div>
@@ -1458,7 +1630,18 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
             </div>
             <div id="license-verify-result" style="font-size:11px;margin-top:4px;display:none"></div>
           </div>
-          <div class="fg"><label>License Type</label><input type="text" id="f-license_type" placeholder="e.g. LMHC, MD, PT"></div>
+          <div class="fg"><label>License Type</label>
+            <select id="f-license_type">
+              <option value="">Select</option>
+              <option>APRN</option><option>MD</option><option>DO</option>
+              <option>PA</option><option>RN</option><option>LPN</option>
+              <option>LMHC</option><option>LCSW</option><option>LMFT</option>
+              <option>Psychologist</option><option>PT</option><option>PTA</option>
+              <option>OT</option><option>OTA</option><option>SLP</option>
+              <option>BCBA</option><option>RBT</option><option>CNA</option>
+              <option>HHA</option><option>Other</option>
+            </select>
+          </div>
           <div class="fg"><label>Issuing State</label><input type="text" id="f-license_state" placeholder="e.g. FL"></div>
           <div class="fg"></div>
           <div class="fg"><label>Issue Date</label><input type="date" id="f-license_issue_date"></div>
@@ -1517,6 +1700,19 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
           </div>
         </div>
       </div>
+      </div><!-- end credentials panel -->
+      <div class="emp-tab-panel" id="emp-panel-comptrack">
+      <!-- Live compliance-requirements tracker (per employee) -->
+      <div class="fs">
+        <div class="fs-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Compliance Tracker</span>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="loadEmpCompTab()">Refresh</button>
+        </div>
+        <div style="font-size:11px;color:var(--t2);margin:-4px 0 12px">Tracks every active requirement from the Compliance Tracker. Requirements added, edited, or removed there appear here automatically.</div>
+        <div id="emp-comptrack-body"><div class="tempty">Loading…</div></div>
+      </div>
+      </div><!-- end comptrack panel -->
+      <div class="emp-tab-panel" id="emp-panel-compliance">
       <!-- Documents -->
       <div class="fs">
         <div class="fs-title">Documents & Expiration Dates</div>
@@ -1558,6 +1754,8 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
 
         </div>
       </div>
+      </div><!-- end compliance panel -->
+      <div class="emp-tab-panel" id="emp-panel-clinical">
       <!-- Additional Clinical Credentials -->
       <div class="fs">
         <div class="fs-title">Malpractice &amp; Liability</div>
@@ -1608,7 +1806,7 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
           <div class="fg"></div>
         </div>
       </div>
-      </div><!-- end emp-panel-main -->
+      </div><!-- end clinical panel -->
       <div class="emp-tab-panel" id="emp-panel-misc">
       <!-- Documents -->
       <div class="fs">
@@ -1665,11 +1863,11 @@ tbody td{padding:10px 14px;color:var(--text);vertical-align:middle}
         <div class="fg"><textarea id="f-notes" placeholder="Additional notes about this employee…"></textarea></div>
       </div>
       </div><!-- end emp-panel-misc -->
+      </div><!-- end modal-body -->
     </form>
-    </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeEmpModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="document.getElementById('emp-form').requestSubmit()">
+      <button class="btn btn-primary" onclick="submitEmpForm()">
         <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         Save Employee
       </button>
@@ -1899,6 +2097,28 @@ let srchTimer  = null;
 let auditOffset = 0;
 let _loginPassword = ''; // temporarily holds the password used at login for force-change
 
+const DEFAULT_POSITION_AHCA_OPTIONS = [
+  'Administrative', 'Clinical', 'Direct Care Staff', 'Medical Staff',
+  'Mental Health Professional', 'Nursing Staff', 'Support Staff', 'Other'
+];
+const DEFAULT_POSITION_OM_OPTIONS = [
+  'Assistant Manager', 'APRN', 'CC', 'Clinical Director', 'Clinician',
+  'Front Desk Clerk', 'Facilitator', 'Massage Therapist', 'Medical Director',
+  'NEMT Driver', 'Neurologist', 'OM', 'OT', 'Office Manager',
+  'Physical Therapist', 'President', 'Psychiatrist', 'Social Worker',
+  'Therapist', 'Other'
+];
+const LICENSE_TYPE_OPTIONS = [
+  'APRN', 'MD', 'DO', 'PA', 'RN', 'LPN', 'LMHC', 'LCSW', 'LMFT',
+  'Psychologist', 'PT', 'PTA', 'OT', 'OTA', 'SLP', 'BCBA', 'RBT',
+  'CNA', 'HHA', 'Other'
+];
+let employeeOptions = { position_ahca: [], position_om: [] };
+let employeeOptionPromise = null;
+let supervisorOptionPromise = null;
+let supervisorOptions = [];
+let orgChartPrintHtml = '';
+
 const EMP_FIELDS = [
   'status','last_name','first_name','employment_date','dob','gender',
   'phone','email','address','position_ahca','position_om',
@@ -1935,6 +2155,20 @@ const ROLE_LABELS = {
 };
 
 // ════════════════════════════════════════════════════
+// AUTH HELPERS
+// ════════════════════════════════════════════════════
+// Decode a JWT and return false if it is malformed or past its `exp`.
+// Purely client-side — the server still enforces auth on every request;
+// this just avoids showing the app behind a token that's already dead.
+function isTokenValid(t) {
+  try {
+    const payload = JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    if (!payload.exp) return true; // no expiry claim — let the server decide
+    return payload.exp * 1000 > Date.now();
+  } catch { return false; }
+}
+
+// ════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
@@ -1957,7 +2191,17 @@ window.addEventListener('DOMContentLoaded', () => {
   const now = new Date();
   document.getElementById('rpt-month').value = now.getMonth() + 1;
   document.getElementById('rpt-year').value  = now.getFullYear();
-  if (token && CU) showApp();
+  document.getElementById('nh-month').value  = now.getMonth() + 1;
+  document.getElementById('nh-year').value   = now.getFullYear();
+  // Only enter the app with a token that is present AND not expired.
+  // An expired JWT lingering in localStorage must NOT grant access — send to login.
+  if (token && CU && isTokenValid(token)) {
+    showApp();
+  } else if (token || CU) {
+    // Stale/expired session — clear it and stay on the login screen.
+    token = null; CU = null;
+    localStorage.removeItem('hr_token'); localStorage.removeItem('hr_user');
+  }
   document.getElementById('lp').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
   // Active toggle label
   const activeChk = document.getElementById('u-active');
@@ -2081,19 +2325,23 @@ async function api(url, method='GET', body=null, auth=true) {
   if (auth) opts.headers.Authorization = `Bearer ${token}`;
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(BASE_PATH + url, opts);
-  // Session expired
+  // Any 401 on an authenticated request means the session is no longer valid
+  // (expired token, blacklisted/invalid token, or missing token). In every
+  // such case, drop the session and send the user back to the login screen —
+  // don't leave them on the app with a dead token.
+  if (res.status === 401 && auth) {
+    const d = await res.json().catch(() => ({}));
+    token = null; CU = null;
+    localStorage.removeItem('hr_token'); localStorage.removeItem('hr_user');
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    const err = document.getElementById('lerr');
+    err.textContent = 'Your session has expired. Please log in again.';
+    err.style.display = 'block';
+    throw new Error('Session expired');
+  }
   if (res.status === 401) {
     const d = await res.json().catch(() => ({}));
-    if (d.error?.includes('Session expired') || d.error?.includes('log in again')) {
-      token = null; CU = null;
-      localStorage.removeItem('hr_token'); localStorage.removeItem('hr_user');
-      document.getElementById('app').style.display = 'none';
-      document.getElementById('login-screen').style.display = 'flex';
-      const err = document.getElementById('lerr');
-      err.textContent = 'Your session has expired. Please log in again.';
-      err.style.display = 'block';
-      throw new Error('Session expired');
-    }
     throw new Error(d.error || 'Unauthorized');
   }
   const data = await res.json();
@@ -2120,6 +2368,7 @@ function showPage(page) {
   if (page==='payments')      loadPayments();
   if (page==='disciplinary')  { loadDisciplinary(); loadDiscStats(); }
   if (page==='training')      loadTraining();
+  if (page==='compliance')    loadCompDashboard();
   if (page==='supervision')   { loadSupervision(); populateSupEmpFilter(); }
   if (page==='offboarding')   loadOffboarding();
   if (page==='incidents')     { loadIncidents(); loadIncStats(); }
@@ -2260,6 +2509,8 @@ async function openDetail(id) {
   try {
     const e = await api(`/api/employees/${id}`);
     panel.innerHTML = buildDetail(e);
+    loadDetailPhoto(id, !!e.photo_url);
+    loadDetailDocuments(id).catch(()=>{});
   } catch(e) {
     panel.innerHTML = `<div style="padding:40px;color:var(--red)">${esc(e.message)}</div>`;
   }
@@ -2316,15 +2567,50 @@ function buildDetail(e) {
   const schedLabel = e.schedule_type==='part-time' ? 'Part-Time'
                    : e.schedule_type==='per-diem' ? 'Per Diem' : 'Full-Time';
 
+  // Compliance summary — drives the banner and the Compliance tab badge
+  const credChecks = [
+    ['License', e.license_expiration],['DEA', e.dea_expiration],
+    ['AHCA Background', e.ahca_background_expiration],['Prof. Liability', e.professional_liability_expiration],
+    ['CEU', e.ceu_expiration],['CPR/BLS', e.cpr_bls_expiration],
+    ['Driver License', e.driver_license_expiration],['Passport', e.passport_expiration],
+    ['I-9', e.i9_expiration],['WC Exemption', e.exemption_worker_comp_expiration],
+    ['Board Cert', e.board_cert_expiration],['Supervision', e.supervision_expiration],
+    ['Hospital Privileges', e.hospital_privileges_expiration],
+  ];
+  const expiredList = [], soonList = [];
+  for (const [lab, d] of credChecks) {
+    if (!d) continue;
+    if (d <= today) expiredList.push(lab);
+    else if (d <= in30) soonList.push(`${lab} (${daysUntil(d)}d)`);
+  }
+  const issueCount = expiredList.length + soonList.length;
+  let bannerHtml;
+  if (issueCount) {
+    bannerHtml = `<div class="det-banner ${expiredList.length ? 'danger' : 'warn'}">`
+      + (expiredList.length ? `<div><b>⚠ ${expiredList.length} expired:</b> ${expiredList.map(esc).join(', ')}</div>` : '')
+      + (soonList.length ? `<div${expiredList.length ? ' style="margin-top:4px"' : ''}><b>${soonList.length} expiring within 30 days:</b> ${soonList.map(esc).join(', ')}</div>` : '')
+      + `</div>`;
+  } else {
+    bannerHtml = `<div class="det-banner ok"><b>✓ All tracked credentials current.</b> Nothing expires within 30 days.</div>`;
+  }
+  const showPayTab = CU.role === 'admin' || CU.role === 'office_manager';
+  const initials = (((e.first_name || ' ')[0] + (e.last_name || ' ')[0]).toUpperCase().trim()) || '—';
+  const ageY = yearsSince(e.dob), tenureY = yearsSince(e.employment_date);
+
   let html = `
   <div class="det-hdr ${hdrStatus}">
-    <div class="det-name">${esc(e.first_name)} ${esc(e.last_name)}</div>
-    <div class="det-pos">${esc(e.position_om || e.position_ahca || 'No position assigned')}</div>
-    <div class="det-meta">${typeLabel} · ${schedLabel}${e.supervisor?` · Supervisor: ${esc(e.supervisor)}`:''}</div>
+    <div style="display:flex;gap:15px;align-items:flex-start">
+      <div class="det-photo" id="det-photo-box">${esc(initials)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="det-name">${esc(e.first_name)} ${esc(e.last_name)}</div>
+        <div class="det-pos">${esc(e.position_om || e.position_ahca || 'No position assigned')}</div>
+        <div class="det-meta">${typeLabel} · ${schedLabel}${e.supervisor?` · Supervisor: ${esc(e.supervisor)}`:''}</div>
+      </div>
+    </div>
     <span class="badge b-${e.status}"><span class="bdot"></span>${e.status==='active'?'Active':'Discharged'}</span>
     ${e.badge_number?`<span class="badge" style="background:rgba(255,255,255,.18);color:#fff;margin-left:6px;letter-spacing:.5px">${esc(e.badge_number)}</span>`:''}
     <div class="det-acts" style="margin-top:14px">
-      <button class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.25)" onclick="openEmpModal(${e.id});closeDetail()">Edit</button>
+      <button class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.25)" onclick="openEmpModal(${e.id});closeDetail()">Edit Full Profile</button>
       <button class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.25)" onclick="printIdCard(${e.id})">Print ID Card</button>
       ${e.status==='active'
         ?`<button class="btn btn-danger btn-sm" onclick="dischargeEmp(${e.id},'${esc(e.first_name)} ${esc(e.last_name)}')">Discharge</button>`
@@ -2335,16 +2621,17 @@ function buildDetail(e) {
     </div>
   </div>
   <div class="det-body">
+    ${bannerHtml}
     <div class="det-section">
       <div class="det-section-title">Personal Information</div>
       <div class="det-grid">
-        ${row('Date of Birth', e.dob, true)}
+        ${row('Date of Birth', e.dob, true, false, ageY!=null?('Age '+ageY):null)}
         ${row('Gender', e.gender)}
         <div class="df"><div class="df-label">Phone</div><div class="df-value">${e.phone?`${esc(fmtPhone(e.phone))}<button class="copy-btn" onclick="copyVal('${esc(String(e.phone))}',this)" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>`:'<span class="df-empty">—</span>'}</div></div>
         <div class="df"><div class="df-label">Email</div><div class="df-value">${e.email?`${esc(e.email)}<button class="copy-btn" onclick="copyVal('${esc(e.email)}',this)" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>`:'<span class="df-empty">—</span>'}</div></div>
         <div class="df span2" style="grid-column:span 2">${row('Address', e.address)}</div>
         <div class="df"><div class="df-label">SSN</div><div class="df-value">
-          <span id="ssn-mask-${e.id}">••••••${e.ssn?esc(String(e.ssn).slice(-4)):'—'}</span>
+          <span id="ssn-mask-${e.id}">${e.ssn?`***-**-${esc(String(e.ssn).replace(/\D/g,'').slice(-4))}`:'—'}</span>
           ${e.ssn?`<button class="copy-btn" onclick="revealSSN(${e.id})" title="View/Copy SSN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>`:''}
         </div></div>
       </div>
@@ -2353,7 +2640,7 @@ function buildDetail(e) {
     <div class="det-section">
       <div class="det-section-title">Employment</div>
       <div class="det-grid">
-        ${row('Hire Date', e.employment_date, true)}
+        ${row('Hire Date', e.employment_date, true, false, tenureY!=null?(tenureY+' yr'+(tenureY!==1?'s':'')+' of service'):null)}
         ${row('Position (AHCA)', e.position_ahca)}
         ${row('Position', e.position_om)}
         ${row('Supervisor', e.supervisor)}
@@ -2397,15 +2684,7 @@ function buildDetail(e) {
     </div>
 
     <div class="det-section">
-      <div class="det-section-title">Business & Tax</div>
-      <div class="det-grid">
-        ${row('SUNBIZ CO', e.sunbiz_co)}
-        ${row('EIN', e.ein, false, false, null, true)}
-      </div>
-    </div>
-
-    <div class="det-section">
-      <div class="det-section-title">Documents & Expiration Dates</div>
+      <div class="det-section-title">Compliance & Expiration Dates</div>
       <div class="det-grid">
         ${row('Driver License #', e.driver_license, false, false, null, true)}
         ${row('Driver License Exp.', e.driver_license_expiration, true, true)}
@@ -2418,6 +2697,14 @@ function buildDetail(e) {
         ${row('Worker Comp Exemp. Exp.', e.exemption_worker_comp_expiration, true, true)}
       </div>
     </div>
+      <div class="det-section">
+        <div class="det-section-title">Documents on File</div>
+        <div id="det-docs-list" style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;color:var(--t2)">Loading…</div></div>
+      </div>
+      <div class="det-section">
+        <div class="det-section-title">Required Documents Checklist</div>
+        <div id="det-docs-missing" style="font-size:12px;color:var(--t2)">Checking…</div>
+      </div>
   `;
 
     // Compensation section (only show to admin/office_manager)
@@ -2439,8 +2726,90 @@ function buildDetail(e) {
     }
 
     html += `${e.notes?`<div class="det-section"><div class="det-section-title">Notes</div><div style="font-size:13px;color:var(--text);line-height:1.6">${esc(e.notes)}</div></div>`:''}
+    <div style="font-size:11px;color:var(--t3);text-align:center;padding:8px 0 2px">Open “Edit Full Profile” for the complete record.</div>
   </div>`;
   return html;
+}
+
+// ── Detail chart: tabs, photo, documents ──────────────────
+function switchDetailTab(name, el) {
+  document.querySelectorAll('.det-vtab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.det-vtab-panel').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const panel = document.getElementById('dtab-' + name);
+  if (panel) panel.classList.add('active');
+  const vp = document.querySelector('.det-vpanel');
+  if (vp) vp.scrollTop = 0;
+}
+
+function daysUntil(d) {
+  const today = new Date(new Date().toISOString().split('T')[0] + 'T00:00:00');
+  return Math.ceil((new Date(d + 'T00:00:00') - today) / 86400000);
+}
+
+function yearsSince(d) {
+  if (!d) return null;
+  const diff = (new Date() - new Date(d + 'T00:00:00')) / (365.25 * 86400000);
+  return diff >= 0 ? Math.floor(diff) : null;
+}
+
+function loadDetailPhoto(id, hasPhoto) {
+  const box = document.getElementById('det-photo-box');
+  if (!box || !hasPhoto) return;
+  fetch(BASE_PATH + '/api/employees/' + id + '/photo', { headers: { Authorization: 'Bearer ' + token } })
+    .then(r => r.ok ? r.blob() : null)
+    .then(blob => {
+      if (!blob) return;
+      box.style.backgroundImage = 'url(' + URL.createObjectURL(blob) + ')';
+      box.textContent = '';
+    }).catch(() => {});
+}
+
+// Commonly required documents — used for the chart's checklist
+const REQUIRED_DOCS = ['Identification Card','Social Security Card','I-9 Form','E-Verify',
+  'AHCA Background Check','Application Letter','Drug Panel','Employee Evaluation'];
+
+async function loadDetailDocuments(empId) {
+  const list = document.getElementById('det-docs-list');
+  const miss = document.getElementById('det-docs-missing');
+  if (!list) return;
+  let docs = [];
+  try { docs = await api(`/api/employees/${empId}/documents`); }
+  catch (e) {
+    list.innerHTML = `<div style="color:var(--red);font-size:12px">Error loading documents: ${esc(e.message)}</div>`;
+    if (miss) miss.innerHTML = '';
+    return;
+  }
+  if (!docs.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--t2)">No documents uploaded yet.</div>';
+  } else {
+    list.innerHTML = docs.map(d => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--sf2);border-radius:6px;border:1px solid var(--border)">
+        <span style="font-size:16px">${docIcon(d.mime_type)}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.doc_type)}</div>
+          <div style="font-size:11px;color:var(--t2)">${esc(d.original_name)} · ${fmtFileSize(d.size_bytes)} · ${fmtRelTime(d.uploaded_at)}</div>
+        </div>
+        <a href="${BASE_PATH}/api/employees/${empId}/documents/file/${esc(d.filename)}" target="_blank"
+           style="font-size:12px;color:var(--green);white-space:nowrap" title="Open document">Open</a>
+      </div>`).join('');
+  }
+  if (miss) {
+    const have = new Set(docs.map(d => d.doc_type));
+    const missingCount = REQUIRED_DOCS.filter(t => !have.has(t)).length;
+    miss.innerHTML =
+      `<div style="margin-bottom:8px;font-size:12px;${missingCount?'color:var(--red);font-weight:600':'color:var(--green);font-weight:600'}">`
+      + (missingCount ? `${missingCount} of ${REQUIRED_DOCS.length} commonly-required documents missing` : `All ${REQUIRED_DOCS.length} commonly-required documents on file`)
+      + `</div>`
+      + REQUIRED_DOCS.map(t => {
+        const ok = have.has(t);
+        return `<div class="det-doc-chk" style="color:${ok ? 'var(--text)' : 'var(--red)'}">`
+          + (ok
+            ? '<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="#1a9c5b" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+            : '<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>')
+          + `${esc(t)}${ok ? '' : ' <span style="font-size:10px;color:var(--t3)">— missing</span>'}</div>`;
+      }).join('');
+  }
 }
 
 // Reveal SSN via audited endpoint
@@ -2449,25 +2818,54 @@ async function revealSSN(id) {
     const d = await api(`/api/employees/${id}/ssn`);
     const el = document.getElementById(`ssn-mask-${id}`);
     if (el && d.ssn) {
-      el.textContent = d.ssn;
+      el.textContent = fmtSSN(d.ssn);
       // Re-mask after 10 seconds
-      setTimeout(() => { if(el) el.textContent = `••••••${String(d.ssn).slice(-4)}`; }, 10000);
+      setTimeout(() => { if(el) el.textContent = `***-**-${String(d.ssn).replace(/\D/g,'').slice(-4)}`; }, 10000);
     }
   } catch(e) { toast(e.message, 'error'); }
 }
 
+// Submit the employee form, but first reveal the tab of any invalid field.
+// Native validation can't focus a required field inside a hidden (display:none)
+// tab panel, so requestSubmit() would otherwise abort silently.
+function submitEmpForm() {
+  // Explicit required-field validation. We can't rely on native validation here
+  // because a required field can live in a hidden (display:none) tab panel, which
+  // the browser refuses to focus — making requestSubmit() abort silently.
+  const REQUIRED = [
+    ['f-last_name',       'personal',   'Last Name'],
+    ['f-first_name',      'personal',   'First Name'],
+    ['f-employment_date', 'employment', 'Hire Date'],
+  ];
+  for (const [fieldId, tabName, label] of REQUIRED) {
+    const el = document.getElementById(fieldId);
+    if (el && !el.value.trim()) {
+      const tab = [...document.querySelectorAll('.emp-vtab')]
+        .find(t => (t.getAttribute('onclick') || '').includes(`'${tabName}'`));
+      switchEmpTab(tabName, tab || null);
+      el.focus();
+      toast(`${label} is required`, 'warn');
+      return;
+    }
+  }
+  saveEmployee({ preventDefault() {} });
+}
+
 // Copy to clipboard
 function switchEmpTab(name, el) {
-  document.querySelectorAll('.emp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.emp-vtab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.emp-tab-panel').forEach(p => p.classList.remove('active'));
   if (el) el.classList.add('active');
   const panel = document.getElementById('emp-panel-' + name);
   if (panel) panel.classList.add('active');
+  const body = document.querySelector('#emp-modal .modal-body');
+  if (body) body.scrollTop = 0;
+  if (name === 'comptrack') loadEmpCompTab();
 }
 
 // Reset tabs when opening the modal
 function resetEmpTabs() {
-  document.querySelectorAll('.emp-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.querySelectorAll('.emp-vtab').forEach((t,i) => t.classList.toggle('active', i===0));
   document.querySelectorAll('.emp-tab-panel').forEach((p,i) => p.classList.toggle('active', i===0));
 }
 
@@ -2497,6 +2895,58 @@ async function copyVal(val, btn) {
 // ════════════════════════════════════════════════════
 // EMPLOYEE MODAL
 // ════════════════════════════════════════════════════
+async function ensureEmployeeOptions() {
+  if (!employeeOptionPromise) {
+    employeeOptionPromise = api('/api/employee-options')
+      .then(d => {
+        employeeOptions = {
+          position_ahca: uniqueList([...(d.position_ahca || []), ...DEFAULT_POSITION_AHCA_OPTIONS]),
+          position_om: uniqueList([...(d.position_om || []), ...DEFAULT_POSITION_OM_OPTIONS]),
+        };
+        return employeeOptions;
+      })
+      .catch(e => {
+        console.warn('Employee options failed:', e.message);
+        employeeOptions = {
+          position_ahca: DEFAULT_POSITION_AHCA_OPTIONS,
+          position_om: DEFAULT_POSITION_OM_OPTIONS,
+        };
+        return employeeOptions;
+      });
+  }
+  return employeeOptionPromise;
+}
+
+async function ensureSupervisorOptions() {
+  if (!supervisorOptionPromise) {
+    supervisorOptionPromise = api('/api/employees?status=active')
+      .then(rows => {
+        supervisorOptions = rows.map(e => `${e.first_name || ''} ${e.last_name || ''}`.trim())
+          .filter(Boolean)
+          .sort((a,b) => a.localeCompare(b));
+        return supervisorOptions;
+      })
+      .catch(e => {
+        console.warn('Supervisor options failed:', e.message);
+        supervisorOptions = [];
+        return supervisorOptions;
+      });
+  }
+  return supervisorOptionPromise;
+}
+
+async function populateEmployeeDropdowns(values={}) {
+  await Promise.all([ensureEmployeeOptions(), ensureSupervisorOptions()]);
+  const currentName = String(values._employee_name || '').trim().toLowerCase();
+  const supervisors = currentName
+    ? supervisorOptions.filter(name => name.toLowerCase() !== currentName)
+    : supervisorOptions;
+  fillSelect('f-position_ahca', employeeOptions.position_ahca, values.position_ahca || '');
+  fillSelect('f-position_om', employeeOptions.position_om, values.position_om || '');
+  fillSelect('f-supervisor', supervisors, values.supervisor || '');
+  fillSelect('f-license_type', LICENSE_TYPE_OPTIONS, values.license_type || '');
+}
+
 async function openEmpModal(id=null) {
   resetEmpTabs();
   document.getElementById('emp-modal-title').textContent = id ? 'Edit Employee' : 'Add Employee';
@@ -2518,11 +2968,15 @@ async function openEmpModal(id=null) {
   if (id) {
     try {
       const e = await api(`/api/employees/${id}`);
+      await populateEmployeeDropdowns({ ...e, _employee_name: `${e.first_name || ''} ${e.last_name || ''}`.trim() });
       document.getElementById('f-id').value = e.id;
       EMP_FIELDS.forEach(f => {
         const el = document.getElementById('f-' + f);
         if (el) el.value = e[f] ?? '';
       });
+      formatPhoneInput(document.getElementById('f-phone'));
+      formatPhoneInput(document.getElementById('f-emergency_contact_phone'));
+      formatSsnInput(document.getElementById('f-ssn'));
       // Badge number display
       const badgeEl = document.getElementById('emp-badge-display');
       badgeEl.innerHTML = 'Badge: <span style="letter-spacing:.5px">' + (e.badge_number ? esc(e.badge_number) : '—') + '</span>';
@@ -2531,6 +2985,8 @@ async function openEmpModal(id=null) {
       // Load documents
       loadEmpDocuments(id).catch(()=>{});
     } catch(e) { toast(e.message, 'error'); return; }
+  } else {
+    await populateEmployeeDropdowns();
   }
   document.getElementById('emp-modal').classList.add('open');
 }
@@ -2617,6 +3073,9 @@ function closeEmpModal(ev) {
 async function saveEmployee(ev) {
   ev.preventDefault();
   const id   = document.getElementById('f-id').value;
+  formatPhoneInput(document.getElementById('f-phone'));
+  formatPhoneInput(document.getElementById('f-emergency_contact_phone'));
+  formatSsnInput(document.getElementById('f-ssn'));
   const body = {};
   EMP_FIELDS.forEach(f => {
     const el = document.getElementById('f-' + f);
@@ -2625,6 +3084,7 @@ async function saveEmployee(ev) {
   try {
     if (id) { await api(`/api/employees/${id}`, 'PUT', body); toast('Employee updated', 'success'); }
     else     { await api('/api/employees', 'POST', body);      toast('Employee added',   'success'); }
+    supervisorOptionPromise = null;
     document.getElementById('emp-modal').classList.remove('open');
     loadEmployees(); loadStats();
   } catch(e) { toast(e.message, 'error'); }
@@ -2660,6 +3120,108 @@ function reactivateEmp(id, name) {
 // ════════════════════════════════════════════════════
 // EXPIRING PAGE
 // ════════════════════════════════════════════════════
+function employeeDisplayName(emp) {
+  return [emp.first_name, emp.last_name].filter(Boolean).join(' ').trim() || `Employee #${emp.id}`;
+}
+
+function normalizePersonName(name) {
+  return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function buildOrgChartMarkup(employees) {
+  const byName = new Map();
+  const children = new Map();
+  employees.forEach(emp => {
+    byName.set(normalizePersonName(employeeDisplayName(emp)), emp);
+    children.set(emp.id, []);
+  });
+  const roots = [];
+  employees.forEach(emp => {
+    const sup = byName.get(normalizePersonName(emp.supervisor));
+    if (sup && sup.id !== emp.id) children.get(sup.id).push(emp);
+    else roots.push(emp);
+  });
+  const sortByName = (a, b) => employeeDisplayName(a).localeCompare(employeeDisplayName(b));
+  roots.sort(sortByName);
+  children.forEach(list => list.sort(sortByName));
+  const renderNode = emp => {
+    const reports = children.get(emp.id) || [];
+    const title = emp.position_om || emp.position_ahca || 'Position not set';
+    return `<li>
+      <div class="org-node">
+        <strong>${esc(employeeDisplayName(emp))}</strong>
+        <span>${esc(title)}</span>
+      </div>
+      ${reports.length ? `<ul>${reports.map(renderNode).join('')}</ul>` : ''}
+    </li>`;
+  };
+  return roots.length ? `<ul class="org-tree">${roots.map(renderNode).join('')}</ul>` : '<div class="empty-state">No active employees found.</div>';
+}
+
+function orgChartDocumentHtml(orgName, chartMarkup) {
+  const today = new Date().toLocaleDateString();
+  return `<!doctype html><html><head><title>${esc(orgName)} Organization Chart</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:28px;color:#17201b;background:#fff}
+    h1{font-size:22px;margin:0 0 4px;text-align:center}
+    .sub{text-align:center;color:#5b6670;font-size:12px;margin-bottom:22px}
+    .org-wrap{overflow:auto;padding-bottom:12px}
+    .org-tree,.org-tree ul{list-style:none;margin:0;padding:0;display:flex;justify-content:center;gap:18px;position:relative}
+    .org-tree ul{padding-top:26px}
+    .org-tree li{display:flex;flex-direction:column;align-items:center;position:relative;min-width:150px}
+    .org-tree li::before{content:"";position:absolute;top:-13px;left:50%;height:13px;border-left:1px solid #aeb8c2}
+    .org-tree>li::before{display:none}
+    .org-node{border:1px solid #aeb8c2;border-radius:8px;background:#fff;padding:10px 12px;min-width:150px;max-width:210px;text-align:center;box-shadow:0 1px 3px rgba(15,23,42,.08)}
+    .org-node strong{display:block;font-size:13px;margin-bottom:4px}
+    .org-node span{display:block;font-size:11px;color:#5b6670}
+    @media print{body{margin:18px}.org-wrap{overflow:visible}.org-node{break-inside:avoid}}
+  </style></head><body>
+    <h1>${esc(orgName)} Organization Chart</h1>
+    <div class="sub">Generated ${esc(today)}</div>
+    <div class="org-wrap">${chartMarkup}</div>
+  </body></html>`;
+}
+
+async function showOrgChart() {
+  try {
+    const [employees, settings] = await Promise.all([
+      api('/api/employees?status=active'),
+      api('/api/settings').catch(() => ({}))
+    ]);
+    const orgName = settings.org_name || 'Emeros EMS';
+    const chartMarkup = buildOrgChartMarkup(employees);
+    orgChartPrintHtml = orgChartDocumentHtml(orgName, chartMarkup);
+    showModal('Facility Organization Chart', `
+      <style>
+        #_m-body .org-actions{display:flex;justify-content:flex-end;margin-bottom:14px}
+        #_m-body .org-preview{overflow:auto;border:1px solid var(--border);border-radius:8px;padding:18px;background:#fff}
+        #_m-body .org-preview .org-tree,#_m-body .org-preview .org-tree ul{list-style:none;margin:0;padding:0;display:flex;justify-content:center;gap:16px;position:relative}
+        #_m-body .org-preview .org-tree ul{padding-top:24px}
+        #_m-body .org-preview .org-tree li{display:flex;flex-direction:column;align-items:center;position:relative;min-width:145px}
+        #_m-body .org-preview .org-tree li::before{content:"";position:absolute;top:-12px;left:50%;height:12px;border-left:1px solid var(--border)}
+        #_m-body .org-preview .org-tree>li::before{display:none}
+        #_m-body .org-node{border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:10px 12px;min-width:145px;max-width:210px;text-align:center}
+        #_m-body .org-node strong{display:block;font-size:13px;margin-bottom:4px;color:var(--text)}
+        #_m-body .org-node span{display:block;font-size:11px;color:var(--t2)}
+      </style>
+      <div class="org-actions"><button class="btn btn-secondary btn-sm" onclick="printOrgChart()">Print</button></div>
+      <div class="org-preview">${chartMarkup}</div>
+    `, null);
+    const panel = document.getElementById('_m-panel');
+    if (panel) panel.style.maxWidth = '1080px';
+  } catch(e) {
+    toast(e.message, 'error');
+  }
+}
+
+function printOrgChart() {
+  if (!orgChartPrintHtml) { toast('Open the organization chart first', 'warn'); return; }
+  const printWin = window.open('', '_blank');
+  printWin.document.write(orgChartPrintHtml);
+  printWin.document.close();
+  setTimeout(() => { printWin.focus(); printWin.print(); }, 300);
+}
+
 async function loadExpiring() {
   const el = document.getElementById('expiring-content');
   el.innerHTML = '<span class="spin"></span> Loading…';
@@ -2728,6 +3290,9 @@ async function dlReport(type) {
   let url = `/api/reports/${type}`;
   if (type==='monthly-roster') {
     url += `?month=${document.getElementById('rpt-month').value}&year=${document.getElementById('rpt-year').value}`;
+  }
+  if (type==='new-hires') {
+    url += `?month=${document.getElementById('nh-month').value}&year=${document.getElementById('nh-year').value}`;
   }
   if (type==='fingerprinting') {
     url += `?include_discharged=${document.getElementById('rpt-fp-all').checked}`;
@@ -3076,8 +3641,9 @@ function showConf(title, msg, dateLabel, type, cb) {
 function closeConf() { document.getElementById('conf-overlay').classList.remove('open'); confCb=null; }
 async function confirmOk() {
   const date = document.getElementById('conf-date').value;
+  const cb = confCb;
   closeConf();
-  if (confCb) try { await confCb(date); } catch(e) { toast(e.message,'error'); }
+  if (cb) try { await cb(date); } catch(e) { toast(e.message,'error'); }
 }
 
 // ════════════════════════════════════════════════════
@@ -3426,7 +3992,7 @@ function switchSettingsTab(name, el) {
 async function loadSettings() {
   // Control admin-only tab visibility
   const isAdmin = CU && (CU.role === 'admin' || CU.role === 'office_manager');
-  ['stab-facility','stab-email','stab-microsoft'].forEach(id => {
+  ['stab-facility','stab-employee-lists','stab-email','stab-microsoft'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = isAdmin ? '' : 'none';
   });
@@ -3444,6 +4010,7 @@ async function loadSettings() {
   // Load all sub-sections
   if (isAdmin) {
     loadFacilitySettings();
+    loadEmployeeOptionsSettings();
     loadEmailStatus();
     loadMicrosoftSettings();
   }
@@ -3511,6 +4078,34 @@ async function saveFacilitySettings() {
   try {
     await api('/api/settings', 'PUT', body);
     toast('Facility settings saved', 'success');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function loadEmployeeOptionsSettings() {
+  try {
+    await ensureEmployeeOptions();
+    const ahca = document.getElementById('set-position_ahca_options');
+    const pos  = document.getElementById('set-position_om_options');
+    if (ahca) ahca.value = uniqueList(employeeOptions.position_ahca).join('\n');
+    if (pos)  pos.value  = uniqueList(employeeOptions.position_om).join('\n');
+  } catch(e) { console.error('Load employee options error:', e.message); }
+}
+
+async function saveEmployeeOptions() {
+  const ahca = document.getElementById('set-position_ahca_options')?.value || '';
+  const pos  = document.getElementById('set-position_om_options')?.value || '';
+  try {
+    const d = await api('/api/employee-options', 'PUT', {
+      position_ahca: ahca.split(/\r?\n/),
+      position_om: pos.split(/\r?\n/),
+    });
+    employeeOptions = {
+      position_ahca: uniqueList(d.position_ahca || []),
+      position_om: uniqueList(d.position_om || []),
+    };
+    employeeOptionPromise = Promise.resolve(employeeOptions);
+    loadEmployeeOptionsSettings();
+    toast('Employee lists saved', 'success');
   } catch(e) { toast(e.message, 'error'); }
 }
 
@@ -4706,6 +5301,9 @@ function esc(s) {
   if (s==null) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+// Alias used by the compliance tracker section
+const escHtml = esc;
+const escAttr = esc;
 
 function fmtDate(d) {
   if (!d) return '—';
@@ -4719,6 +5317,47 @@ function fmtPhone(p) {
   const digits = String(p).replace(/\D/g,'');
   if (digits.length===10) return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
   return String(p);
+}
+
+function fmtSSN(s) {
+  if (!s) return '';
+  const digits = String(s).replace(/\D/g,'').slice(0,9);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 5) return `${digits.slice(0,3)}-${digits.slice(3)}`;
+  return `${digits.slice(0,3)}-${digits.slice(3,5)}-${digits.slice(5)}`;
+}
+
+function formatPhoneInput(el) {
+  const digits = String(el.value || '').replace(/\D/g,'').slice(0,10);
+  if (!digits) { el.value = ''; return; }
+  if (digits.length <= 3) el.value = digits;
+  else if (digits.length <= 6) el.value = `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+  else el.value = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+}
+
+function formatSsnInput(el) {
+  el.value = fmtSSN(el.value);
+}
+
+function uniqueList(items) {
+  const seen = new Set();
+  return (items || []).map(v => String(v || '').trim())
+    .filter(Boolean)
+    .filter(v => {
+      const key = v.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function fillSelect(id, values, selectedValue='', placeholder='Select') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const selected = String(selectedValue || '');
+  const opts = uniqueList([...(values || []), selected]);
+  el.innerHTML = `<option value="">${placeholder}</option>` +
+    opts.map(v => `<option value="${escAttr(v)}"${v===selected?' selected':''}>${escHtml(v)}</option>`).join('');
 }
 
 // ════════════════════════════════════════════════════
@@ -4869,7 +5508,7 @@ async function loadTraining() {
       const today = new Date().toISOString().split('T')[0];
       const expCls = r.expiration_date && r.expiration_date <= today ? 'color:var(--red)' : r.expiration_date && r.expiration_date <= new Date(Date.now()+60*86400000).toISOString().split('T')[0] ? 'color:var(--amber)' : '';
       return `<tr>
-        <td><strong>${r.last_name}, ${r.first_name}</strong><br><small style="color:var(--t3)">${r.badge_number||''}</small></td>
+        <td><strong>${escHtml(r.last_name)}, ${escHtml(r.first_name)}</strong><br><small style="color:var(--t3)">${escHtml(r.badge_number||'')}</small></td>
         <td>${r.training_name}</td>
         <td>${r.category ? badge(fmtType(r.category),'blue') : '—'}</td>
         <td>${r.provider||'—'}</td>
@@ -5603,7 +6242,7 @@ function showModal(title, bodyHtml, onSave, saveLabel='Save') {
     m = document.createElement('div');
     m.id = '_generic-modal';
     m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-    m.innerHTML=`<div style="background:var(--surface);border-radius:var(--r);padding:28px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;box-shadow:var(--sh-lg)">
+    m.innerHTML=`<div id="_m-panel" style="background:var(--surface);border-radius:var(--r);padding:28px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;box-shadow:var(--sh-lg)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <h3 id="_m-title" style="font-size:16px;font-weight:600"></h3>
         <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--t2);line-height:1">&times;</button>
@@ -5616,6 +6255,7 @@ function showModal(title, bodyHtml, onSave, saveLabel='Save') {
     </div>`;
     document.body.appendChild(m);
   }
+  document.getElementById('_m-panel').style.maxWidth = '560px';
   document.getElementById('_m-title').textContent = title;
   document.getElementById('_m-body').innerHTML    = bodyHtml;
   const saveBtn = document.getElementById('_m-save');
@@ -5653,6 +6293,523 @@ function togglePw(id, btn) {
 }
 </script>
 <script>
+// ════════════════════════════════════════════════════
+// COMPLIANCE
+// ════════════════════════════════════════════════════
+let compDashData = null;
+let compRequirements = [];
+let compActiveTab = 'dashboard';
+
+function switchCompTab(tab) {
+  compActiveTab = tab;
+  ['dashboard','records','reqs'].forEach(t => {
+    document.getElementById('comp-tab-'+t).style.display = t===tab ? '' : 'none';
+    const btn = document.getElementById('ctab-'+t);
+    btn.style.background = t===tab ? 'var(--green)' : '';
+    btn.style.color = t===tab ? '#fff' : '';
+    btn.className = t===tab ? 'btn btn-sm' : 'btn btn-sm btn-secondary';
+  });
+  if (tab==='records')   loadCompRecords();
+  if (tab==='reqs')      loadCompRequirements();
+}
+
+async function loadCompDashboard() {
+  document.getElementById('comp-dash-tbody').innerHTML='<tr><td colspan="8" class="tempty">Loading…</td></tr>';
+  try {
+    const d = await api('/api/compliance/dashboard');
+    compDashData = d;
+    document.getElementById('comp-stat-reqs').textContent       = d.totalReqs;
+    document.getElementById('comp-stat-compliant').textContent  = d.compliant;
+    document.getElementById('comp-stat-expired').textContent    = d.expired;
+    document.getElementById('comp-stat-exp30').textContent      = d.expiring30;
+    document.getElementById('comp-stat-exp60').textContent      = d.expiring60;
+    document.getElementById('comp-stat-declined').textContent   = d.declined;
+    renderCompDash();
+    // also refresh requirements cache
+    compRequirements = await api('/api/compliance/requirements');
+  } catch(e) {
+    document.getElementById('comp-dash-tbody').innerHTML=`<tr><td colspan="8" class="tempty">${e.message}</td></tr>`;
+  }
+}
+
+function renderCompDash() {
+  if (!compDashData) return;
+  const search = (document.getElementById('comp-dash-search')?.value||'').toLowerCase();
+  const tbody  = document.getElementById('comp-dash-tbody');
+  let emps = compDashData.employees || [];
+  if (search) emps = emps.filter(e => `${e.last_name} ${e.first_name} ${e.badge_number||''}`.toLowerCase().includes(search));
+  if (!emps.length) { tbody.innerHTML='<tr><td colspan="8" class="tempty">No employees</td></tr>'; return; }
+  tbody.innerHTML = emps.map(e => {
+    e.position_om = escHtml(e.position_om || '');
+    const pct = e.total_reqs ? Math.round((e.met / e.total_reqs) * 100) : 0;
+    const statusCls = e.expired > 0 ? 'red' : e.expiring60 > 0 ? 'amber' : pct >= 100 ? 'ok' : '';
+    const statusLabel = e.expired > 0 ? 'Non-Compliant' : e.expiring60 > 0 ? 'Expiring Soon' : pct >= 100 ? 'Compliant' : 'Incomplete';
+    const barColor = e.expired > 0 ? 'var(--red)' : pct >= 80 ? 'var(--ok)' : 'var(--amber)';
+    return `<tr>
+      <td><strong>${escHtml(e.last_name)}, ${escHtml(e.first_name)}</strong><br><small style="color:var(--t3)">${escHtml(e.badge_number||'')}</small></td>
+      <td>${e.position_om||'—'}</td>
+      <td style="text-align:center">${e.total_reqs}</td>
+      <td style="text-align:center;color:var(--ok);font-weight:600">${e.met}</td>
+      <td style="text-align:center;color:${e.expired>0?'var(--red)':'var(--t3)'};font-weight:${e.expired>0?700:400}">${e.expired||0}</td>
+      <td style="text-align:center;color:${e.expiring60>0?'var(--amber)':'var(--t3)'};font-weight:${e.expiring60>0?700:400}">${e.expiring60||0}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${barColor};transition:width .3s"></div>
+          </div>
+          <span class="${statusCls}" style="color:${e.expired>0?'var(--red)':e.expiring60>0?'var(--amber)':pct>=100?'var(--ok)':'var(--t2)'};font-size:12px;font-weight:600;white-space:nowrap">${statusLabel}</span>
+        </div>
+      </td>
+      <td><button class="btn btn-xs btn-secondary" data-name="${escAttr(e.first_name+' '+e.last_name)}" onclick="viewEmpCompliance(${e.id},this.dataset.name)">View</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// Shared renderer for the per-employee compliance list — used by both the
+// dashboard "View" modal and the employee chart's embedded Compliance tab.
+// Returns inner HTML for the grouped requirement list.
+function buildEmpComplianceHtml(reqs, recs, empId) {
+  const recMap = {};
+  for (const r of recs) recMap[r.requirement_id] = r;
+  const today = new Date().toISOString().split('T')[0];
+  if (!reqs.length) return '<div class="tempty">No active compliance requirements defined yet. Add them in the Compliance Tracker page.</div>';
+  const cats = [...new Set(reqs.map(r => r.category))];
+  let html = '';
+  for (const cat of cats) {
+    const catReqs = reqs.filter(r => r.category === cat);
+    html += `<div style="margin-bottom:18px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px">${fmtType(cat)}</div>`;
+    for (const req of catReqs) {
+      const rec = recMap[req.id];
+      let statusBadge, statusCls;
+      if (!rec) {
+        statusBadge = 'Pending'; statusCls = 'color:var(--t2)';
+      } else if (rec.declined) {
+        statusBadge = 'Declined'; statusCls = 'color:var(--t2)';
+      } else if (rec.expiration_date && rec.expiration_date < today) {
+        statusBadge = 'Expired'; statusCls = 'color:var(--red);font-weight:700';
+      } else if (rec.status === 'compliant') {
+        statusBadge = 'Compliant'; statusCls = 'color:var(--ok);font-weight:600';
+      } else {
+        statusBadge = fmtType(rec.status||'pending'); statusCls = 'color:var(--amber)';
+      }
+      const proofMissing = req.requires_attachment && !rec?.attachment_filename && !rec?.declined;
+      html += `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="flex:1">
+          <div style="font-weight:500;font-size:13px">${escHtml(req.name)}${req.requires_attachment?' <span title="Requires proof attachment" style="font-size:11px;color:var(--green)">📎</span>':''}</div>
+          ${rec ? `<div style="font-size:12px;color:var(--t3);margin-top:2px">
+            ${rec.completed_date ? 'Completed: '+fmtDate(rec.completed_date) : ''}
+            ${rec.expiration_date ? ' · Expires: '+fmtDate(rec.expiration_date) : ''}
+            ${rec.lot_number ? ' · Lot: '+escHtml(rec.lot_number) : ''}
+            ${rec.administered_by ? ' · By: '+escHtml(rec.administered_by) : ''}
+            ${rec.notes ? '<br>'+escHtml(rec.notes) : ''}
+          </div>` : ''}
+          ${rec?.attachment_filename ? `<div style="font-size:12px;margin-top:3px"><a href="#" onclick="event.preventDefault();viewCompAttachment(${rec.id})" style="color:var(--green);font-weight:600">📎 View proof${rec.attachment_original_name?' ('+escHtml(rec.attachment_original_name)+')':''}</a></div>` : ''}
+          ${proofMissing ? `<div style="font-size:11px;color:var(--red);margin-top:3px">Proof attachment required</div>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span style="${statusCls};font-size:12px">${statusBadge}</span>
+          <button type="button" class="btn btn-xs btn-secondary" onclick="openCompRecForm(${empId},${req.id},${rec?rec.id:'null'})">
+            ${rec ? 'Edit' : 'Add'}
+          </button>
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  return html;
+}
+
+async function viewEmpCompliance(empId, name) {
+  try {
+    const d = await api(`/api/employees/${empId}/compliance`);
+    const html = `<div style="max-height:70vh;overflow-y:auto">${buildEmpComplianceHtml(d.requirements||[], d.records||[], empId)}</div>`;
+    showModal(`Compliance — ${name}`, html, null);
+  } catch(e) { alert(e.message); }
+}
+
+// Renders the embedded compliance tracker inside the employee chart's new tab.
+async function loadEmpCompTab() {
+  const box = document.getElementById('emp-comptrack-body');
+  if (!box) return;
+  const empId = document.getElementById('f-id').value;
+  if (!empId) {
+    box.innerHTML = '<div class="tempty">Save the employee first to start tracking their compliance requirements.</div>';
+    return;
+  }
+  box.innerHTML = '<div class="tempty">Loading…</div>';
+  try {
+    const d = await api(`/api/employees/${empId}/compliance`);
+    box.innerHTML = buildEmpComplianceHtml(d.requirements||[], d.records||[], empId);
+  } catch(e) {
+    box.innerHTML = `<div class="tempty">${escHtml(e.message)}</div>`;
+  }
+}
+
+async function loadCompRecords() {
+  const tbody   = document.getElementById('comp-rec-tbody');
+  const search  = document.getElementById('comp-rec-search')?.value||'';
+  const cat     = document.getElementById('comp-rec-cat')?.value||'';
+  const status  = document.getElementById('comp-rec-status')?.value||'';
+  const expiring= document.getElementById('comp-rec-expiring')?.checked ? '1' : '';
+  tbody.innerHTML='<tr><td colspan="8" class="tempty">Loading…</td></tr>';
+  try {
+    const p = new URLSearchParams();
+    if (search)  p.set('search', search);
+    if (cat)     p.set('category', cat);
+    if (status)  p.set('status', status);
+    if (expiring) p.set('expiring', '1');
+    const rows = await api(`/api/compliance/records?${p}`);
+    if (!rows.length) { tbody.innerHTML='<tr><td colspan="8" class="tempty">No records</td></tr>'; return; }
+    const today = new Date().toISOString().split('T')[0];
+    tbody.innerHTML = rows.map(r => {
+      r.verified_by = escHtml(r.verified_by || '');
+      const expired = r.expiration_date && r.expiration_date < today;
+      const expiring60 = r.expiration_date && !expired && r.expiration_date <= new Date(Date.now()+60*86400000).toISOString().split('T')[0];
+      const expStyle = expired ? 'color:var(--red);font-weight:600' : expiring60 ? 'color:var(--amber);font-weight:600' : '';
+      const statusLabel = r.declined ? 'Declined' : expired ? 'Expired' : fmtType(r.status||'pending');
+      const statusStyle = r.declined ? 'color:var(--t2)' : expired ? 'color:var(--red);font-weight:700' : r.status==='compliant' ? 'color:var(--ok);font-weight:600' : 'color:var(--amber)';
+      return `<tr>
+        <td><strong>${r.last_name}, ${r.first_name}</strong><br><small style="color:var(--t3)">${r.badge_number||''}</small></td>
+        <td>${escHtml(r.req_name)}</td>
+        <td>${badge(fmtType(r.req_category),'blue')}</td>
+        <td><span style="${statusStyle}">${statusLabel}</span></td>
+        <td>${fmtDate(r.completed_date)}</td>
+        <td><span style="${expStyle}">${fmtDate(r.expiration_date)}</span></td>
+        <td>${r.verified_by||'—'}</td>
+        <td>
+          <button class="btn btn-xs btn-secondary" onclick="openCompRecForm(${r.employee_id},${r.requirement_id},${r.id})" style="margin-right:4px">Edit</button>
+          <button class="btn btn-xs btn-secondary" onclick="deleteCompRec(${r.id})">Del</button>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) { tbody.innerHTML=`<tr><td colspan="8" class="tempty">${e.message}</td></tr>`; }
+}
+
+let _crfExistingAttachment = null;
+async function openCompRecForm(empId, reqId, recId) {
+  if (!compRequirements.length) compRequirements = await api('/api/compliance/requirements');
+  let existing = null;
+  if (recId) {
+    try {
+      existing = await api(`/api/compliance/records/${recId}`);
+    } catch(e) {
+      alert(e.message);
+      return;
+    }
+  }
+  const empOptions = empId ? '' : (await api('/api/employees?status=active'))
+    .map(e => `<option value="${e.id}">${escHtml(e.last_name)}, ${escHtml(e.first_name)}</option>`).join('');
+  const reqOptions = compRequirements
+    .map(r => `<option value="${r.id}" ${r.id==reqId?'selected':''}>${escHtml(r.name)} (${fmtType(r.category)})</option>`).join('');
+  const selReq = compRequirements.find(r => r.id == reqId) || compRequirements[0] || {};
+  // Track the record's current attachment so save/enforcement knows proof already exists.
+  _crfExistingAttachment = existing?.attachment_filename || null;
+  showModal(recId ? 'Edit Compliance Record' : 'Add Compliance Record', `
+    <div style="display:grid;gap:12px">
+      ${empId ? `<input type="hidden" id="crf-emp" value="${empId}">` :
+        `<div class="fg"><label>Employee *</label><select id="crf-emp"><option value="">Select…</option>${empOptions}</select></div>`}
+      <div class="fg"><label>Requirement *</label><select id="crf-req" onchange="onCompReqChange()">${reqOptions}</select></div>
+      <div class="fg"><label>Status</label>
+        <select id="crf-status">
+          <option value="compliant" ${!existing||existing.status==='compliant'?'selected':''}>Compliant</option>
+          <option value="pending" ${existing?.status==='pending'?'selected':''}>Pending</option>
+          <option value="non_compliant" ${existing?.status==='non_compliant'?'selected':''}>Non-Compliant</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label>Completed Date</label><input id="crf-date" type="date" value="${escAttr(existing?.completed_date||'')}"></div>
+        <div class="fg"><label>Expiration Date</label><input id="crf-exp" type="date" value="${escAttr(existing?.expiration_date||'')}"></div>
+      </div>
+      <div id="crf-vacc-fields" style="${selReq.category==='vaccination'?'':'display:none'}">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fg"><label>Lot Number</label><input id="crf-lot" value="${escAttr(existing?.lot_number||'')}"></div>
+          <div class="fg"><label>Administration Site</label>
+            <select id="crf-site">
+              <option value="">Select…</option>
+              <option value="left_arm" ${existing?.administration_site==='left_arm'?'selected':''}>Left Arm (deltoid)</option>
+              <option value="right_arm" ${existing?.administration_site==='right_arm'?'selected':''}>Right Arm (deltoid)</option>
+              <option value="left_thigh" ${existing?.administration_site==='left_thigh'?'selected':''}>Left Thigh</option>
+              <option value="right_thigh" ${existing?.administration_site==='right_thigh'?'selected':''}>Right Thigh</option>
+              <option value="intradermal" ${existing?.administration_site==='intradermal'?'selected':''}>Intradermal</option>
+              <option value="oral" ${existing?.administration_site==='oral'?'selected':''}>Oral</option>
+              <option value="nasal" ${existing?.administration_site==='nasal'?'selected':''}>Nasal</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg"><label>Administered By</label><input id="crf-admin" value="${escAttr(existing?.administered_by||'')}"></div>
+      </div>
+      ${selReq.can_decline ? `<div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="crf-declined" onchange="onCompDeclinedChange()" ${existing?.declined?'checked':''}> Employee Declined
+        </label>
+        <div id="crf-decline-fields" style="${existing?.declined?'':'display:none'};margin-top:10px;display:${existing?.declined?'grid':'none'};grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fg"><label>Decline Date</label><input id="crf-dec-date" type="date" value="${escAttr(existing?.declined_date||'')}"></div>
+          <div class="fg"><label>Decline Reason</label><input id="crf-dec-reason" value="${escAttr(existing?.declined_reason||'')}"></div>
+        </div>
+      </div>` : `<input type="hidden" id="crf-declined" value="0"><div id="crf-decline-fields" style="display:none"></div>`}
+      <div class="fg"><label>Verified By</label><input id="crf-verified" value="${escAttr(existing?.verified_by||'')}"></div>
+      <div class="fg">
+        <label>Proof Attachment${selReq.requires_attachment?' <span class="req">*</span>':''} <span style="font-weight:400;color:var(--t3)">(image or PDF)</span></label>
+        <div id="crf-attach-current" style="${existing?.attachment_filename?'':'display:none'};display:${existing?.attachment_filename?'flex':'none'};align-items:center;gap:12px;margin-bottom:6px;font-size:12px">
+          <span>📎 ${escHtml(existing?.attachment_original_name||'attachment')}</span>
+          <a href="#" onclick="event.preventDefault();viewCompAttachment(${recId||'null'})" style="color:var(--green);font-weight:600">View</a>
+          <a href="#" onclick="event.preventDefault();removeCompAttachmentInForm(${recId||'null'})" style="color:var(--red);font-weight:600">Remove</a>
+        </div>
+        <input type="file" id="crf-file" accept="image/png,image/jpeg,image/webp,application/pdf">
+        <div style="font-size:11px;color:var(--t2);margin-top:4px">Max 10 MB. ${selReq.requires_attachment?'Required before this requirement can be marked Compliant.':'Optional proof of completion.'}</div>
+      </div>
+      <div class="fg"><label>Notes</label><textarea id="crf-notes" rows="2" style="width:100%;resize:vertical">${escHtml(existing?.notes||'')}</textarea></div>
+    </div>`, () => saveCompRec(empId, reqId, recId));
+}
+
+function onCompReqChange() {
+  const reqId = document.getElementById('crf-req')?.value;
+  const req = compRequirements.find(r => r.id == reqId);
+  const vaccFields = document.getElementById('crf-vacc-fields');
+  if (vaccFields) vaccFields.style.display = req?.category==='vaccination' ? '' : 'none';
+}
+
+function onCompDeclinedChange() {
+  const chk = document.getElementById('crf-declined');
+  const fields = document.getElementById('crf-decline-fields');
+  if (fields) fields.style.display = (chk?.checked||chk?.value==='1') ? 'grid' : 'none';
+}
+
+async function saveCompRec(empId, reqId, recId) {
+  const eid = empId || document.getElementById('crf-emp')?.value;
+  const rid = document.getElementById('crf-req')?.value || reqId;
+  if (!eid) { alert('Employee is required'); return; }
+  if (!rid)  { alert('Requirement is required'); return; }
+  const declinedEl = document.getElementById('crf-declined');
+  const declined = declinedEl?.type==='checkbox' ? (declinedEl.checked ? 1 : 0) : 0;
+  const status = document.getElementById('crf-status')?.value || 'compliant';
+  const file = document.getElementById('crf-file')?.files?.[0] || null;
+  const reqDef = compRequirements.find(r => r.id == rid);
+  const requiresAtt = !!(reqDef && reqDef.requires_attachment);
+  const hasExisting = !!_crfExistingAttachment;
+  // Enforce proof: a requirement flagged "requires attachment" can't be marked
+  // Compliant without a file (unless the employee declined).
+  if (requiresAtt && status === 'compliant' && !declined && !file && !hasExisting) {
+    alert('This requirement requires a proof attachment (image or PDF) before it can be marked Compliant.');
+    return;
+  }
+  const payload = {
+    requirement_id: Number(rid),
+    status,
+    completed_date: document.getElementById('crf-date')?.value || null,
+    expiration_date: document.getElementById('crf-exp')?.value || null,
+    lot_number: document.getElementById('crf-lot')?.value || null,
+    administration_site: document.getElementById('crf-site')?.value || null,
+    administered_by: document.getElementById('crf-admin')?.value || null,
+    declined,
+    declined_date: document.getElementById('crf-dec-date')?.value || null,
+    declined_reason: document.getElementById('crf-dec-reason')?.value || null,
+    verified_by: document.getElementById('crf-verified')?.value || null,
+    notes: document.getElementById('crf-notes')?.value || null,
+  };
+  try {
+    // If a new file backs a Compliant status but nothing is attached yet, save as
+    // Pending first so the server's attachment rule passes, upload, then finalize.
+    const twoStep = file && requiresAtt && status === 'compliant' && !hasExisting && !declined;
+    let savedId = recId;
+    if (recId) {
+      await api(`/api/compliance/records/${recId}`, 'PUT', { ...payload, status: twoStep ? 'pending' : status });
+    } else {
+      const r = await api(`/api/employees/${eid}/compliance`, 'POST', { ...payload, status: twoStep ? 'pending' : status });
+      savedId = r.id;
+    }
+    if (file && savedId) {
+      const fd = new FormData(); fd.append('attachment', file);
+      const up = await fetch(`${BASE_PATH}/api/compliance/records/${savedId}/attachment`, {
+        method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: fd
+      });
+      const ud = await up.json().catch(() => ({}));
+      if (!up.ok) throw new Error(ud.error || 'Attachment upload failed');
+    }
+    if (twoStep && savedId) {
+      await api(`/api/compliance/records/${savedId}`, 'PUT', { ...payload, status });
+    }
+    closeModal();
+    if (compActiveTab === 'dashboard') { loadCompDashboard(); }
+    else if (compActiveTab === 'records') { loadCompRecords(); }
+    // Refresh the employee chart's embedded Compliance tab if it's the open view.
+    if (document.getElementById('emp-modal')?.classList.contains('open') &&
+        document.getElementById('emp-panel-comptrack')?.classList.contains('active')) {
+      loadEmpCompTab();
+    }
+  } catch(e) { alert(e.message); }
+}
+
+// View a record's proof attachment (auth header required, so fetch as a blob).
+async function viewCompAttachment(recId) {
+  if (!recId) return;
+  try {
+    const r = await fetch(`${BASE_PATH}/api/compliance/records/${recId}/attachment`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!r.ok) throw new Error('Could not load attachment');
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch(e) { alert(e.message); }
+}
+
+// Remove the current attachment from within the record form.
+async function removeCompAttachmentInForm(recId) {
+  if (!recId) return;
+  if (!confirm('Remove the attached proof file?')) return;
+  try {
+    await api(`/api/compliance/records/${recId}/attachment`, 'DELETE');
+    _crfExistingAttachment = null;
+    const cur = document.getElementById('crf-attach-current');
+    if (cur) cur.style.display = 'none';
+  } catch(e) { alert(e.message); }
+}
+
+async function deleteCompRec(id) {
+  if (!confirm('Delete this compliance record?')) return;
+  try {
+    await api(`/api/compliance/records/${id}`, 'DELETE');
+    loadCompRecords();
+  } catch(e) { alert(e.message); }
+}
+
+async function deleteCompReq(id, name) {
+  if (!confirm(`Delete the requirement "${name}"?\n\nThis removes it from every employee's compliance chart. Any tracking records for it will no longer be shown.\n\nTip: to retire a requirement without losing history, edit it and uncheck "Active" instead.`)) return;
+  try {
+    await api(`/api/compliance/requirements/${id}`, 'DELETE');
+    loadCompRequirements();
+  } catch(e) { alert(e.message); }
+}
+
+function deleteCompReqFromButton(btn) {
+  deleteCompReq(btn.dataset.id, btn.dataset.name || '');
+}
+
+async function loadCompRequirements() {
+  const tbody = document.getElementById('comp-req-tbody');
+  tbody.innerHTML='<tr><td colspan="8" class="tempty">Loading…</td></tr>';
+  try {
+    const rows = await api('/api/compliance/requirements');
+    compRequirements = rows;
+    if (!rows.length) { tbody.innerHTML='<tr><td colspan="8" class="tempty">No requirements</td></tr>'; return; }
+    const isManagerPlus = CU && (CU.role==='office_manager'||CU.role==='admin');
+    tbody.innerHTML = rows.map(r => {
+      const freqLabel = r.frequency==='once' ? 'One-time' :
+                        r.frequency==='annual' ? 'Annual' :
+                        r.frequency==='biennial' ? 'Every 2 yrs' :
+                        r.frequency==='triennial' ? 'Every 3 yrs' :
+                        r.frequency_months ? `Every ${r.frequency_months}mo` : r.frequency;
+      return `<tr style="opacity:${r.active?1:0.45}">
+        <td><strong>${escHtml(r.name)}</strong>${r.requires_attachment?' <span title="Requires proof attachment" style="font-size:11px;color:var(--green)">📎</span>':''}${r.notes?`<br><small style="color:var(--t3)">${escHtml(r.notes.slice(0,80))}${r.notes.length>80?'…':''}</small>`:''}</td>
+        <td>${badge(fmtType(r.category),'blue')}</td>
+        <td>${badge(fmtType(r.applies_to),'')}</td>
+        <td>${freqLabel}</td>
+        <td style="text-align:center">${r.can_decline ? '<span style="color:var(--ok)">Yes</span>' : '<span style="color:var(--t3)">No</span>'}</td>
+        <td style="text-align:center">${r.grace_period_days||30}</td>
+        <td style="text-align:center">${r.active ? '<span style="color:var(--ok)">Active</span>' : '<span style="color:var(--t3)">Inactive</span>'}</td>
+        <td style="white-space:nowrap">
+          ${isManagerPlus ? `<button class="btn btn-xs btn-secondary" onclick="openCompReqForm(${r.id})">Edit</button>
+          <button class="btn btn-xs btn-danger" data-id="${r.id}" data-name="${escAttr(r.name)}" onclick="deleteCompReqFromButton(this)">Delete</button>` : ''}
+        </td>
+      </tr>`;
+    }).join('');
+    const addReqBtn = document.querySelector('#comp-tab-reqs .manager-only');
+    if (addReqBtn) addReqBtn.style.display = isManagerPlus ? '' : 'none';
+  } catch(e) { tbody.innerHTML=`<tr><td colspan="8" class="tempty">${e.message}</td></tr>`; }
+}
+
+async function openCompReqForm(reqId) {
+  let existing = null;
+  if (reqId) existing = compRequirements.find(r => r.id === reqId) || null;
+  showModal(reqId ? 'Edit Requirement' : 'Add Compliance Requirement', `
+    <div style="display:grid;gap:12px">
+      <div class="fg"><label>Name *</label><input id="crqf-name" value="${escAttr(existing?.name||'')}"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label>Category *</label>
+          <select id="crqf-cat">
+            <option value="vaccination" ${existing?.category==='vaccination'?'selected':''}>Vaccination</option>
+            <option value="certification" ${existing?.category==='certification'?'selected':''}>Certification</option>
+            <option value="training" ${existing?.category==='training'?'selected':''}>Training</option>
+            <option value="ceu" ${existing?.category==='ceu'?'selected':''}>CEU</option>
+            <option value="document" ${existing?.category==='document'?'selected':''}>Document</option>
+          </select>
+        </div>
+        <div class="fg"><label>Applies To</label>
+          <select id="crqf-applies">
+            <option value="all" ${(!existing||existing.applies_to==='all')?'selected':''}>All Employees</option>
+            <option value="clinical" ${existing?.applies_to==='clinical'?'selected':''}>Clinical Staff</option>
+            <option value="administrative" ${existing?.applies_to==='administrative'?'selected':''}>Administrative</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label>Frequency</label>
+          <select id="crqf-freq" onchange="onCompFreqChange()">
+            <option value="once" ${(!existing||existing.frequency==='once')?'selected':''}>One-time</option>
+            <option value="annual" ${existing?.frequency==='annual'?'selected':''}>Annual (12 mo)</option>
+            <option value="biennial" ${existing?.frequency==='biennial'?'selected':''}>Biennial (24 mo)</option>
+            <option value="triennial" ${existing?.frequency==='triennial'?'selected':''}>Triennial (36 mo)</option>
+            <option value="custom" ${existing?.frequency==='custom'?'selected':''}>Custom</option>
+          </select>
+        </div>
+        <div class="fg" id="crqf-months-wrap" style="${existing?.frequency==='custom'?'':'display:none'}">
+          <label>Renewal (months)</label>
+          <input id="crqf-months" type="number" min="1" value="${escAttr(existing?.frequency_months||'')}">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label>Grace Period (days)</label><input id="crqf-grace" type="number" min="0" value="${escAttr(existing?.grace_period_days??30)}"></div>
+        <div class="fg" style="display:flex;align-items:center;gap:8px;padding-top:20px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="crqf-decline" ${existing?.can_decline?'checked':''}> Allow Declination
+          </label>
+        </div>
+      </div>
+      <div class="fg"><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+        <input type="checkbox" id="crqf-attach" ${existing?.requires_attachment?'checked':''}> Requires proof attachment (image or PDF)
+      </label>
+      <div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:24px">When checked, a record can't be marked Compliant until a proof file is attached.</div></div>
+      ${reqId ? `<div class="fg"><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+        <input type="checkbox" id="crqf-active" ${!existing||existing.active?'checked':''}> Active
+      </label></div>` : ''}
+      <div class="fg"><label>Notes</label><textarea id="crqf-notes" rows="2" style="width:100%;resize:vertical">${escHtml(existing?.notes||'')}</textarea></div>
+    </div>`, () => saveCompReq(reqId));
+}
+
+function onCompFreqChange() {
+  const val = document.getElementById('crqf-freq')?.value;
+  const wrap = document.getElementById('crqf-months-wrap');
+  if (wrap) wrap.style.display = val==='custom' ? '' : 'none';
+}
+
+async function saveCompReq(reqId) {
+  const name = document.getElementById('crqf-name')?.value?.trim();
+  const cat  = document.getElementById('crqf-cat')?.value;
+  if (!name) { alert('Name is required'); return; }
+  const freq = document.getElementById('crqf-freq')?.value;
+  const freqMonths = { once: null, annual: 12, biennial: 24, triennial: 36, custom: null }[freq];
+  const customMonths = freq==='custom' ? Number(document.getElementById('crqf-months')?.value)||null : null;
+  const payload = {
+    name, category: cat,
+    applies_to: document.getElementById('crqf-applies')?.value || 'all',
+    frequency: freq,
+    frequency_months: freqMonths ?? customMonths,
+    grace_period_days: Number(document.getElementById('crqf-grace')?.value)||30,
+    can_decline: document.getElementById('crqf-decline')?.checked ? 1 : 0,
+    requires_attachment: document.getElementById('crqf-attach')?.checked ? 1 : 0,
+    active: reqId ? (document.getElementById('crqf-active')?.checked ? 1 : 0) : 1,
+    notes: document.getElementById('crqf-notes')?.value || null,
+  };
+  try {
+    if (reqId) { await api(`/api/compliance/requirements/${reqId}`, 'PUT', payload); }
+    else        { await api('/api/compliance/requirements', 'POST', payload); }
+    closeModal(); loadCompRequirements();
+  } catch(e) { alert(e.message); }
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })

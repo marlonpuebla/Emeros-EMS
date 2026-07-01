@@ -13,6 +13,10 @@ FROM node:22-alpine
 LABEL maintainer="Puebla Services LLC"
 LABEL description="Emeros — Employee Management System"
 
+# Python + required packages for import_excel.py and generate_report.py
+RUN apk add --no-cache python3 py3-pip && \
+    pip3 install --no-cache-dir --break-system-packages openpyxl reportlab
+
 # Non-root user for security
 RUN addgroup -S emeros && adduser -S emeros -G emeros
 
@@ -32,8 +36,8 @@ USER emeros
 
 EXPOSE 3001
 
-# Health check — hits the stats endpoint every 30s
+# Health check — hits the public health endpoint every 30s
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD wget -qO- http://localhost:3001/api/stats 2>/dev/null | grep -q total || exit 1
+  CMD wget -qO- http://localhost:3001/api/health 2>/dev/null | grep -q '"status":"ok"' || exit 1
 
 CMD ["node", "server.js"]

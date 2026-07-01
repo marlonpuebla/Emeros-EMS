@@ -459,6 +459,47 @@ async function initDb() {
     sort_order INTEGER DEFAULT 0
   )`);
 
+  /* ── Compliance module ──────────────────────────────── */
+
+  dbRun(`CREATE TABLE IF NOT EXISTS compliance_requirements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    applies_to TEXT DEFAULT 'all',
+    frequency TEXT DEFAULT 'once',
+    frequency_months INTEGER,
+    grace_period_days INTEGER DEFAULT 30,
+    can_decline INTEGER DEFAULT 0,
+    requires_attachment INTEGER DEFAULT 0,
+    notes TEXT,
+    active INTEGER DEFAULT 1,
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  dbRun(`CREATE TABLE IF NOT EXISTS compliance_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    requirement_id INTEGER NOT NULL REFERENCES compliance_requirements(id) ON DELETE CASCADE,
+    status TEXT DEFAULT 'pending',
+    completed_date TEXT,
+    expiration_date TEXT,
+    lot_number TEXT,
+    administered_by TEXT,
+    administration_site TEXT,
+    notes TEXT,
+    declined INTEGER DEFAULT 0,
+    declined_reason TEXT,
+    declined_date TEXT,
+    verified_by TEXT,
+    attachment_filename TEXT,
+    attachment_original_name TEXT,
+    attachment_uploaded_at TEXT,
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
   /* ── Safe migrations for existing DBs ────────────────── */
   const migrations = [
     'ALTER TABLE employees ADD COLUMN wc_exemption_number TEXT',
@@ -483,6 +524,16 @@ async function initDb() {
     'ALTER TABLE employees ADD COLUMN pay_type TEXT',
     'ALTER TABLE employees ADD COLUMN pay_rate REAL',
     'ALTER TABLE employees ADD COLUMN pay_frequency TEXT',
+    // 001 — badge number and photo
+    'ALTER TABLE employees ADD COLUMN badge_number TEXT',
+    'ALTER TABLE employees ADD COLUMN photo_url TEXT',
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_employees_badge_number ON employees(badge_number)',
+    // 001 — user profile fields
+    'ALTER TABLE users ADD COLUMN email TEXT',
+    'ALTER TABLE users ADD COLUMN phone TEXT',
+    'ALTER TABLE users ADD COLUMN employee_id INTEGER REFERENCES employees(id)',
+    // 002 — Microsoft-SSO lock flag (used by /api/users and /unlock-ms)
+    'ALTER TABLE users ADD COLUMN ms_locked INTEGER DEFAULT 0',
     // 003 — access token for physical badge barcodes
     'ALTER TABLE employees ADD COLUMN access_token TEXT',
     'CREATE UNIQUE INDEX IF NOT EXISTS idx_employees_access_token ON employees(access_token)',
@@ -529,6 +580,11 @@ async function initDb() {
       notes TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`,
+    // 002 — compliance proof attachments
+    'ALTER TABLE compliance_requirements ADD COLUMN requires_attachment INTEGER DEFAULT 0',
+    'ALTER TABLE compliance_records ADD COLUMN attachment_filename TEXT',
+    'ALTER TABLE compliance_records ADD COLUMN attachment_original_name TEXT',
+    'ALTER TABLE compliance_records ADD COLUMN attachment_uploaded_at TEXT',
   ];
   for (const sql of migrations) { try { db.run(sql); } catch (_) {} }
 
@@ -554,6 +610,9 @@ async function initDb() {
 
   /* ── Seed hiring package templates ───────────────────────── */
   seedTemplates();
+
+  /* ── Seed compliance requirements ────────────────────────── */
+  seedComplianceRequirements();
 
   /* ── Housekeeping ──────────────────────────────────────── */
   dbRun('DELETE FROM token_blacklist WHERE expires_at < ?', [Math.floor(Date.now() / 1000)]);
@@ -974,6 +1033,56 @@ function generateIncidentNumber(dbGet) {
   );
   const seq = (row?.n || 0) + 1;
   return `INC-${year}-${String(seq).padStart(4, '0')}`;
+}
+
+/* ─── Seed compliance requirements ──────────────────────────── */
+function seedComplianceRequirements() {
+  const existing = dbGet('SELECT id FROM compliance_requirements LIMIT 1');
+  if (existing) return;
+
+  const reqs = [
+    // Vaccinations
+    { name: 'Hepatitis B Vaccination', category: 'vaccination', applies_to: 'all', frequency: 'once', frequency_months: null, grace_period_days: 30, can_decline: 1, notes: 'Series of 3 doses OR signed declination. OSHA 29 CFR §1910.1030.' },
+    { name: 'TB Screening (Tuberculosis)', category: 'vaccination', applies_to: 'all', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 0, notes: 'Annual PPD skin test or IGRA blood test.' },
+    { name: 'Influenza (Flu) Vaccine', category: 'vaccination', applies_to: 'all', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 1, notes: 'Recommended annually each flu season.' },
+    { name: 'COVID-19 Vaccination', category: 'vaccination', applies_to: 'all', frequency: 'once', frequency_months: null, grace_period_days: 30, can_decline: 1, notes: 'Primary series. Boosters per current CDC guidance.' },
+    { name: 'MMR (Measles, Mumps, Rubella)', category: 'vaccination', applies_to: 'all', frequency: 'once', frequency_months: null, grace_period_days: 30, can_decline: 0, notes: 'Immunity documentation OR vaccination record.' },
+    { name: 'Varicella (Chickenpox)', category: 'vaccination', applies_to: 'all', frequency: 'once', frequency_months: null, grace_period_days: 30, can_decline: 0, notes: 'Immunity documentation, vaccination record, or serology.' },
+    { name: 'Tdap (Tetanus, Diphtheria, Pertussis)', category: 'vaccination', applies_to: 'all', frequency: 'once', frequency_months: null, grace_period_days: 30, can_decline: 0, notes: 'One-time Tdap, then Td booster every 10 years.' },
+    // Certifications
+    { name: 'CPR / BLS Certification', category: 'certification', applies_to: 'all', frequency: 'biennial', frequency_months: 24, grace_period_days: 30, can_decline: 0, notes: 'AHA or ARC BLS for Healthcare Providers. Renewal every 2 years.' },
+    { name: 'AHCA Level 2 Background Screening', category: 'certification', applies_to: 'all', frequency: 'once', frequency_months: null, grace_period_days: 30, can_decline: 0, notes: 'FL §408.809 / §435.04. Must be current and clear.' },
+    { name: 'Professional License', category: 'certification', applies_to: 'clinical', frequency: 'biennial', frequency_months: 24, grace_period_days: 60, can_decline: 0, notes: 'Primary source verification required. Track via employee license fields.' },
+    { name: 'DEA Registration', category: 'certification', applies_to: 'clinical', frequency: 'triennial', frequency_months: 36, grace_period_days: 60, can_decline: 0, notes: 'Required for prescribers. Renewal every 3 years.' },
+    { name: 'Professional Liability Insurance', category: 'certification', applies_to: 'clinical', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 0, notes: 'Malpractice / E&O coverage. Certificate of insurance on file.' },
+    { name: "Worker's Compensation Exemption", category: 'certification', applies_to: 'all', frequency: 'biennial', frequency_months: 24, grace_period_days: 30, can_decline: 0, notes: 'FL exemption certificate. Required for 1099 contractors.' },
+    // Annual Trainings
+    { name: 'HIPAA Privacy & Security Training', category: 'training', applies_to: 'all', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 0, notes: 'Required annually per HIPAA regulations.' },
+    { name: 'OSHA Safety Training', category: 'training', applies_to: 'all', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 0, notes: 'Bloodborne pathogens, hazard communication, fire safety.' },
+    { name: 'Abuse, Neglect & Exploitation Training', category: 'training', applies_to: 'all', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 0, notes: 'FL Statute §415. Recognition and mandatory reporting.' },
+    { name: 'Emergency Procedures / Disaster Preparedness', category: 'training', applies_to: 'all', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 0, notes: 'Fire evacuation, emergency codes, disaster plan review.' },
+    { name: 'Infection Control Training', category: 'training', applies_to: 'all', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 0, notes: 'Standard precautions, PPE, hand hygiene.' },
+    { name: 'Annual Performance Evaluation', category: 'training', applies_to: 'all', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 0, notes: 'Completed and signed annual review on file.' },
+    // CEUs
+    { name: 'Continuing Education Units (CEUs)', category: 'ceu', applies_to: 'clinical', frequency: 'biennial', frequency_months: 24, grace_period_days: 60, can_decline: 0, notes: 'Required hours per license type for renewal. Track via training records.' },
+    // Documents
+    { name: 'I-9 Employment Eligibility Verification', category: 'document', applies_to: 'all', frequency: 'once', frequency_months: null, grace_period_days: 3, can_decline: 0, notes: 'Must be completed within 3 business days of hire.' },
+    { name: 'W-4 / W-9 Tax Form', category: 'document', applies_to: 'all', frequency: 'once', frequency_months: null, grace_period_days: 3, can_decline: 0, notes: 'W-4 for employees, W-9 for contractors.' },
+    { name: 'Employee Handbook Acknowledgment', category: 'document', applies_to: 'all', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 0, notes: 'Signed acknowledgment of current employee handbook.' },
+    { name: 'Confidentiality / NDA Agreement', category: 'document', applies_to: 'all', frequency: 'once', frequency_months: null, grace_period_days: 7, can_decline: 0, notes: 'Signed confidentiality agreement on file.' },
+    { name: 'OIG / SAM Exclusion Check', category: 'document', applies_to: 'all', frequency: 'annual', frequency_months: 12, grace_period_days: 30, can_decline: 0, notes: 'Monthly check recommended; annual documented check minimum. 42 CFR §1001.' },
+  ];
+
+  for (const r of reqs) {
+    db.run(
+      `INSERT INTO compliance_requirements (name, category, applies_to, frequency, frequency_months, grace_period_days, can_decline, notes, active, created_by)
+       VALUES (?,?,?,?,?,?,?,?,1,'system')`,
+      [r.name, r.category, r.applies_to, r.frequency, r.frequency_months || null,
+       r.grace_period_days, r.can_decline, r.notes || null]
+    );
+  }
+  saveDb();
+  console.log(`[db] Seeded ${reqs.length} compliance requirements`);
 }
 
 module.exports = { initDb, dbAll, dbGet, dbRun, lastInsertId, saveDb, reloadDb, generateAccessToken, generateIncidentNumber };
